@@ -1,7 +1,13 @@
+# Get MFA_USER_ARN 
+$MFA_USER_ARN = Read-Host -Prompt 'Enter MFA_USER_ARN:'
+
+# Get ROLE_ARN 
+$ROLE_ARN = Read-Host -Prompt 'Enter ROLE_ARN:'
+
 $source_profile = "default"
 $region = "eu-west-1"
-$mfa_serial = "{MFA_USER_ARN}"
-$role_arn = "{ROLE_ARN}"
+$mfa_serial = $MFA_USER_ARN
+$role_arn = $ROLE_ARN
 $target_profile = "test"
 $target_profile_path =  "$HOME\.aws\credentials"
 $session_name = "test"
