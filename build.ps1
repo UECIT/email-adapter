@@ -24,11 +24,11 @@ Set-AWSCredential -StoreAs $target_profile -ProfileLocation $target_profile_path
 Write-Host("Credentials will expire at: " + $Response.Expiration)
 	
 (Get-ECRLoginCommand).Password | docker login --username AWS --password-stdin 410123189863.dkr.ecr.eu-west-1.amazonaws.com
- 
+
 mvn clean install dockerfile:build
 	
-docker tag nhsd/email-adapter:latest 410123189863.dkr.ecr.eu-west-1.amazonaws.com/sgh-email-adapter:latest
+docker tag nhsd/email-adapter:latest 410123189863.dkr.ecr.eu-west-1.amazonaws.com/email-adapter:latest
 
-docker push 410123189863.dkr.ecr.eu-west-1.amazonaws.com/sgh-email-adapter:latest
+docker push 410123189863.dkr.ecr.eu-west-1.amazonaws.com/email-adapter:latest
 
 docker run -p 8080:8080 nhsd/email-adapter:latest --restart always
