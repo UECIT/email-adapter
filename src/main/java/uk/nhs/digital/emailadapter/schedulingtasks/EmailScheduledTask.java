@@ -21,17 +21,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import org.apache.commons.lang3.time.DateFormatUtils;
-import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MimeTypeUtils;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
 import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest;
@@ -71,25 +69,19 @@ public class EmailScheduledTask {
   private final ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
   private final AWSSimpleSystemsManagement ssm =
       AWSSimpleSystemsManagementClientBuilder.defaultClient();
-  private final StandardPBEStringEncryptor decryptor = new StandardPBEStringEncryptor();
-  private final String mpCryptoPassword;
 
-  @Autowired
-  public EmailScheduledTask(@Value(value = "${mpCryptoPassword}") final String mpCryptoPassword)
-      throws Exception {
-    this.mpCryptoPassword = mpCryptoPassword;
-    decryptor.setPassword(mpCryptoPassword);
-    ExchangeCredentials credentials = new WebCredentials(
-        decryptor.decrypt(getParameter("username")), decryptor.decrypt(getParameter("password")));
+  public EmailScheduledTask() throws Exception {
+    ExchangeCredentials credentials =
+        new WebCredentials(getParameter("username"), getParameter("password"));
     service.setCredentials(credentials);
-    service.autodiscoverUrl(decryptor.decrypt(getParameter("username")));
+    service.autodiscoverUrl(getParameter("username"));
   }
 
   @Async
   @Scheduled(fixedRateString = "${fixedRate.in.milliseconds}",
       initialDelayString = "${initialDelay.in.milliseconds}")
   public void sendMails() throws InterruptedException {
-    String timeStamp = FOMATTER.format(LocalDateTime.now());
+    String timeStamp = LocalDateTime.now().format(FOMATTER);
     log.info("Invocation started: {}", timeStamp);
 
     try {
@@ -105,54 +97,57 @@ public class EmailScheduledTask {
 
       while (findResults.getTotalCount() > 0) {
         for (Object item : findResults.getItems()) {
-          EmailMessage emailMessage = (EmailMessage) item;
-          emailMessage
-              .load(new PropertySet(BasePropertySet.FirstClassProperties, ItemSchema.MimeContent));
-          log.info("attachment count: {} ", emailMessage.getAttachments().getCount());
+          try {
+            EmailMessage emailMessage = (EmailMessage) item;
+            emailMessage.load(
+                new PropertySet(BasePropertySet.FirstClassProperties, ItemSchema.MimeContent));
+            log.info("attachment count: {} ", emailMessage.getAttachments().getCount());
+            Attachment attachment = emailMessage.getAttachments().getItems().get(0);
+            stopwatch.finishStage("Getting html attchement from email");
+            if (attachment instanceof FileAttachment) {
+              FileAttachment fileAttachment = (FileAttachment) attachment;
+              fileAttachment.load();
 
-          Attachment attachment = emailMessage.getAttachments().getItems().get(0);
-          stopwatch.finishStage("Getting html attchement from email");
+              if (fileAttachment.getContentType().equalsIgnoreCase(MimeTypeUtils.TEXT_HTML_VALUE)) {
+                // convert bytes[] to string
+                String htmlString = new String(fileAttachment.getContent(), StandardCharsets.UTF_8);
+                Document doc = Jsoup.parse(htmlString);
+                byte[] transform = new PDFTransformer().transform(doc.html());
+                stopwatch.finishStage("pdf transformation");
+                // Create an email message and set properties on the message.
+                EmailMessage message = new EmailMessage(service);
+                message.setSubject(getParameter("EMS_REPORT_SUBJECT"));
+                message.setBody(new MessageBody(getParameter("EMS_REPORT_BODY")));
+                message.getToRecipients().add(getParameter("EMS_REPORT_RECIPIENT"));
+                FileAttachment addFileAttachment =
+                    message.getAttachments().addFileAttachment(createFileName(doc), transform);
+                addFileAttachment.setContentType("application/pdf");
+                stopwatch.finishStage("Added pdf attchement to mail");
+                message.send();
+                stopwatch.finishStage("Sent an email with pdf attachement");
+              }
 
-          if (attachment instanceof FileAttachment) {
-            FileAttachment fileAttachment = (FileAttachment) attachment;
-            fileAttachment.load();
+            } else if (attachment instanceof ItemAttachment) {
+              ItemAttachment itemAttachment = (ItemAttachment) attachment;
 
-            if (fileAttachment.getContentType().equalsIgnoreCase("text/html")) {
-              // convert bytes[] to string
-              String htmlString = new String(fileAttachment.getContent(), StandardCharsets.UTF_8);
-              byte[] transform = new PDFTransformer().transform(Jsoup.parse(htmlString).html());
-              stopwatch.finishStage("pdf transformation");
-              // Create an email message and set properties on the message.
-              EmailMessage message = new EmailMessage(service);
-              message.setSubject(getParameter("EMS_REPORT_SUBJECT"));
-              message.setBody(new MessageBody(getParameter("EMS_REPORT_BODY")));
-              message.getToRecipients().add(getParameter("EMS_REPORT_RECIPIENT"));
-              FileAttachment addFileAttachment = message.getAttachments()
-                  .addFileAttachment(createFileName(Jsoup.parse(htmlString)), transform);
-              addFileAttachment.setContentType("application/pdf");
-              stopwatch.finishStage("Added pdf attchement to mail");
-              message.send();
-              stopwatch.finishStage("Sent an email with pdf attachement");
+              String name = itemAttachment.getName();
+              log.info("ItemAttachment name : {} ", name);
+              Item attachedItem = itemAttachment.getItem();
+              log.info("ItemAttachment attachedItem : {} ", attachedItem);
             }
-
-          } else if (attachment instanceof ItemAttachment) {
-            ItemAttachment itemAttachment = (ItemAttachment) attachment;
-
-            String name = itemAttachment.getName();
-            log.info("ItemAttachment name : {} ", name);
-            Item attachedItem = itemAttachment.getItem();
-            log.info("ItemAttachment attachedItem : {} ", attachedItem);
+            emailMessage.setIsRead(true);
+            emailMessage.update(ConflictResolutionMode.AlwaysOverwrite);
+            stopwatch.finishStage("Making email unread after reading email");
+          } catch (Exception e) {
+            log.error("Exception", e);
           }
-          emailMessage.setIsRead(true);
-          emailMessage.update(ConflictResolutionMode.AlwaysOverwrite);
-          stopwatch.finishStage("Making email unread after reading email");
         }
         findResults = service.findItems(WellKnownFolderName.Inbox, searchFilterCollection, view);
       }
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error("Exception", e);
     }
-    timeStamp = FOMATTER.format(LocalDateTime.now());
+    timeStamp = LocalDateTime.now().format(FOMATTER);
     log.info("Invocation completed: {}", timeStamp);
   }
 
