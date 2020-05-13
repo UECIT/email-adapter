@@ -6,7 +6,6 @@ Also send the an email with pdf attachment to destination.
 It uses The Exchange Web Services (EWS) Java API.
 By using the EWS Java API, you can access almost all the information stored in an Office 365, Exchange Online, or Exchange Server mailbox.
 
-http://www.jasypt.org/cli.html 
 ## Source Code Location
 The repository for this project is located in a public GitHub space here: https://github.com/UECIT/email-adapter
 
