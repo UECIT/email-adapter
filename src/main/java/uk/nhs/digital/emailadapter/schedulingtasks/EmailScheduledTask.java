@@ -35,8 +35,7 @@ import org.springframework.stereotype.Component;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
 import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import microsoft.exchange.webservices.data.core.ExchangeService;
 import microsoft.exchange.webservices.data.core.PropertySet;
@@ -64,8 +63,7 @@ import uk.nhs.digital.emailadapter.transformer.PDFTransformer;
 
 @Slf4j
 @EnableAsync
-@Getter
-@Setter
+@Data
 @Component
 public class EmailScheduledTask {
 
