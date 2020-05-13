@@ -1,8 +1,8 @@
-# EMS Email Adapter
+# Email Adapter
 ## Running
-This service implements an AWS Lambda function to accept incoming emails with html.
+This service reads email attachments & convert into pdf.
 
-It also send email with PDF report to a fixed recipient.
+Also send the an email with pdf attachment.
 
 ## Licence
 
