@@ -1,7 +1,13 @@
+# Get MFA_USER_ARN 
+$MFA_USER_ARN = Read-Host -Prompt 'Enter MFA_USER_ARN:'
+
+# Get ROLE_ARN 
+$ROLE_ARN = Read-Host -Prompt 'Enter ROLE_ARN:'
+
 $source_profile = "default"
 $region = "eu-west-1"
-$mfa_serial = "{MFA_USER_ARN}"
-$role_arn = "{ROLE_ARN}"
+$mfa_serial = $MFA_USER_ARN
+$role_arn = $ROLE_ARN
 $target_profile = "test"
 $target_profile_path =  "$HOME\.aws\credentials"
 $session_name = "test"
@@ -24,11 +30,11 @@ Set-AWSCredential -StoreAs $target_profile -ProfileLocation $target_profile_path
 Write-Host("Credentials will expire at: " + $Response.Expiration)
 	
 (Get-ECRLoginCommand).Password | docker login --username AWS --password-stdin 410123189863.dkr.ecr.eu-west-1.amazonaws.com
- 
+
 mvn clean install dockerfile:build
 	
-docker tag iucds/sgh-email-adapter:latest 410123189863.dkr.ecr.eu-west-1.amazonaws.com/sgh-email-adapter:latest
+docker tag nhsd/email-adapter:latest 410123189863.dkr.ecr.eu-west-1.amazonaws.com/email-adapter:latest
 
-docker push 410123189863.dkr.ecr.eu-west-1.amazonaws.com/sgh-email-adapter:latest
+docker push 410123189863.dkr.ecr.eu-west-1.amazonaws.com/email-adapter:latest
 
-docker run -p 8080:8080 iucds/sgh-email-adapter:latest
+docker run -p 8080:8080 nhsd/email-adapter:latest --restart always
