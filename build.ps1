@@ -31,4 +31,4 @@ docker tag iucds/sgh-email-adapter:latest 410123189863.dkr.ecr.eu-west-1.amazona
 
 docker push 410123189863.dkr.ecr.eu-west-1.amazonaws.com/sgh-email-adapter:latest
 
-docker run -p 8080:8080 iucds/sgh-email-adapter:latest
+docker run -p 8080:8080 iucds/sgh-email-adapter:latest --restart always
