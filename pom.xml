@@ -21,8 +21,6 @@
 		<docker.image.prefix>nhsd</docker.image.prefix>
 		<java.version>11</java.version>
 		<aws-sdk.version>1.11.362</aws-sdk.version>
-		<jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
-		<maven-surefire-report-plugin.version>3.0.0-M4</maven-surefire-report-plugin.version>
 		<jacoco.line.coveredRatio>0.40</jacoco.line.coveredRatio>
 	</properties>
 
