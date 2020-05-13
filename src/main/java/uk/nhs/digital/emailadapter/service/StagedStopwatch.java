@@ -1,17 +1,16 @@
-package net.nhs.sgh.emailadapter.service;
+package uk.nhs.digital.emailadapter.service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class StagedStopwatch {
 
-  private static final Logger logger = LoggerFactory.getLogger(StagedStopwatch.class);
   private Instant stageStart = Instant.now();
 
   private StagedStopwatch() {
-    logger.info("Timing started at " + stageStart + '\n');
+    log.info("Timing started at " + stageStart + '\n');
   }
 
   private String getTimeUntilNow(Instant now) {
@@ -25,7 +24,7 @@ public class StagedStopwatch {
 
   public void finishStage(String stageName) {
     Instant now = Instant.now();
-    logger.info(String.format("finished %s in %s\n", stageName, getTimeUntilNow(now)));
+    log.info(String.format("finished %s in %s\n", stageName, getTimeUntilNow(now)));
     stageStart = now;
   }
 
