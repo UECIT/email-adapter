@@ -1,8 +1,15 @@
 # Email Adapter
-## Running
-This service reads email attachments & convert into pdf.
+## Overview
+This service reads email with html attachment from source & convert into pdf.
+Also send the an email with pdf attachment to destination.
 
-Also send the an email with pdf attachment.
+## Source Code Location
+The repository for this project is located in a public GitHub space here: https://github.com/UECIT/email-adapter
+
+## Build Steps
+1. add {MFA_USER_ARN} in build.ps1 script
+2. add {ROLE_ARN} in build.os1 script
+3. run build.ps1 script from powershell
 
 ## Licence
 
