@@ -21,8 +21,6 @@
 		<docker.image.prefix>nhsd</docker.image.prefix>
 		<java.version>11</java.version>
 		<aws-sdk.version>1.11.362</aws-sdk.version>
-		<dockerfile-maven-plugin.version>1.4.13</dockerfile-maven-plugin.version>
-		<maven-dependency-plugin.version>3.1.2</maven-dependency-plugin.version>
 		<jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
 		<maven-surefire-report-plugin.version>3.0.0-M4</maven-surefire-report-plugin.version>
 		<jacoco.line.coveredRatio>0.40</jacoco.line.coveredRatio>
@@ -45,38 +43,14 @@
 			<plugin>
 				<groupId>com.spotify</groupId>
 				<artifactId>dockerfile-maven-plugin</artifactId>
-				<version>${dockerfile-maven-plugin.version}</version>
-				<configuration>
-					<repository>${docker.image.prefix}/${project.artifactId}</repository>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>${maven-dependency-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>unpack</id>
-						<phase>package</phase>
-						<goals>
-							<goal>unpack</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>${project.groupId}</groupId>
-									<artifactId>${project.artifactId}</artifactId>
-									<version>${project.version}</version>
-								</artifactItem>
-							</artifactItems>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
-				<version>${maven-surefire-report-plugin.version}</version>
 				<configuration>
 					<argLine>-Xmx1024M ${argLine}</argLine>
 				</configuration>
@@ -84,51 +58,10 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>${jacoco-maven-plugin.version}</version>
-				<configuration>
-					<excludes>
-						<excludes>**/com/generated-sources/package/**</excludes>
-					</excludes>
-					<rules>
-						<rule>
-							<element>BUNDLE</element>
-							<limits>
-								<limit>
-									<counter>LINE</counter>
-									<value>COVEREDRATIO</value>
-									<minimum>${jacoco.line.coveredRatio}</minimum>
-								</limit>
-							</limits>
-						</rule>
-					</rules>
-				</configuration>
-				<executions>
-					<execution>
-						<id>initialize</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-					<execution>
-						<phase>verify</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>default-check</id>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>versions-maven-plugin</artifactId>
-				<configuration>
-					<generateBackupPoms>false</generateBackupPoms>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
