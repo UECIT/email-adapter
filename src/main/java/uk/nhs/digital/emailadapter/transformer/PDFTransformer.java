@@ -1,4 +1,4 @@
-package net.nhs.sgh.emailadapter.transformer;
+package uk.nhs.digital.emailadapter.transformer;
 
 import com.amazonaws.util.StringInputStream;
 import com.itextpdf.html2pdf.HtmlConverter;

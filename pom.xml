@@ -4,25 +4,24 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.springframework</groupId>
-	<artifactId>sgh-email-adapter</artifactId>
+	<groupId>uk.nhs.digital</groupId>
+	<artifactId>email-adapter</artifactId>
 	<version>0.1.0</version>
 	<packaging>jar</packaging>
-	<name>Spring Boot Docker</name>
-	<description>Getting started with Spring Boot and Docker</description>
+	<name>IUCDS pilot</name>
+	<description>IUCDS pilot email adapter</description>
 
 	<parent>
-		<groupId>org.springframework.boot</groupId>
+		<groupId>com.cooldatasoft</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.1.RELEASE</version>
-		<relativePath />
+		<version>2.2.5.RELEASE</version>
 	</parent>
 
 	<properties>
-		<docker.image.prefix>iucds</docker.image.prefix>
+		<docker.image.prefix>nhsd</docker.image.prefix>
 		<java.version>11</java.version>
 		<aws-sdk.version>1.11.362</aws-sdk.version>
-		<dockerfile-maven-plugin.version>1.4.13</dockerfile-maven-plugin.version>
+		<jacoco.line.coveredRatio>0.40</jacoco.line.coveredRatio>
 	</properties>
 
 	<build>
@@ -42,10 +41,25 @@
 			<plugin>
 				<groupId>com.spotify</groupId>
 				<artifactId>dockerfile-maven-plugin</artifactId>
-				<version>${dockerfile-maven-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
 				<configuration>
-					<repository>${docker.image.prefix}/${project.artifactId}</repository>
+					<argLine>-Xmx1024M ${argLine}</argLine>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
@@ -65,6 +79,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.microsoft.ews-java-api</groupId>
@@ -109,6 +127,17 @@
 			<artifactId>html2pdf</artifactId>
 			<version>2.1.7</version>
 		</dependency>
-	</dependencies>
 
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.6</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.ulisesbocchio</groupId>
+			<artifactId>jasypt-spring-boot</artifactId>
+			<version>2.0.0</version>
+		</dependency>
+	</dependencies>
 </project>
