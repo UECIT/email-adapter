@@ -67,10 +67,12 @@ import uk.nhs.digital.emailadapter.transformer.PDFTransformer;
 @Component
 public class EmailScheduledTask {
 
-  private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
-  private AWSSimpleSystemsManagement ssm = AWSSimpleSystemsManagementClientBuilder.defaultClient();
-  StandardPBEStringEncryptor decryptor = new StandardPBEStringEncryptor();
-  private String mpCryptoPassword;
+  private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
+  private final ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
+  private final AWSSimpleSystemsManagement ssm =
+      AWSSimpleSystemsManagementClientBuilder.defaultClient();
+  private final StandardPBEStringEncryptor decryptor = new StandardPBEStringEncryptor();
+  private final String mpCryptoPassword;
 
   @Autowired
   public EmailScheduledTask(@Value(value = "${mpCryptoPassword}") final String mpCryptoPassword)
@@ -87,13 +89,12 @@ public class EmailScheduledTask {
   @Scheduled(fixedRateString = "${fixedRate.in.milliseconds}",
       initialDelayString = "${initialDelay.in.milliseconds}")
   public void sendMails() throws InterruptedException {
-    String timeStamp =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss").format(LocalDateTime.now());
+    String timeStamp = FOMATTER.format(LocalDateTime.now());
     log.info("Invocation started: {}", timeStamp);
 
     try {
       StagedStopwatch stopwatch = StagedStopwatch.start();
-      ItemView view = new ItemView(10);
+      ItemView view = new ItemView(Integer.parseInt(getParameter("EMAIL_ITEM_VIEW")));
       SearchFilterCollection searchFilterCollection =
           new SearchFilter.SearchFilterCollection(LogicalOperator.And);
       searchFilterCollection.add(
@@ -116,24 +117,23 @@ public class EmailScheduledTask {
             FileAttachment fileAttachment = (FileAttachment) attachment;
             fileAttachment.load();
 
-            // convert bytes[] to string
-            String htmlString = new String(fileAttachment.getContent(), StandardCharsets.UTF_8);
-            byte[] transform = new PDFTransformer().transform(Jsoup.parse(htmlString).html());
-            stopwatch.finishStage("pdf transformation");
-
-            // Create an email message and set properties on the message.
-            EmailMessage message = new EmailMessage(service);
-            message.setSubject(getParameter("EMS_REPORT_SUBJECT"));
-            message.setBody(new MessageBody(getParameter("EMS_REPORT_BODY")));
-            message.getToRecipients().add(getParameter("EMS_REPORT_RECIPIENT"));
-
-            FileAttachment addFileAttachment = message.getAttachments()
-                .addFileAttachment(createFileName(Jsoup.parse(htmlString)), transform);
-            addFileAttachment.setContentType("application/pdf");
-            stopwatch.finishStage("Added pdf attchement to mail");
-
-            message.send();
-            stopwatch.finishStage("Sent an email with pdf attachement");
+            if (fileAttachment.getContentType().equalsIgnoreCase("text/html")) {
+              // convert bytes[] to string
+              String htmlString = new String(fileAttachment.getContent(), StandardCharsets.UTF_8);
+              byte[] transform = new PDFTransformer().transform(Jsoup.parse(htmlString).html());
+              stopwatch.finishStage("pdf transformation");
+              // Create an email message and set properties on the message.
+              EmailMessage message = new EmailMessage(service);
+              message.setSubject(getParameter("EMS_REPORT_SUBJECT"));
+              message.setBody(new MessageBody(getParameter("EMS_REPORT_BODY")));
+              message.getToRecipients().add(getParameter("EMS_REPORT_RECIPIENT"));
+              FileAttachment addFileAttachment = message.getAttachments()
+                  .addFileAttachment(createFileName(Jsoup.parse(htmlString)), transform);
+              addFileAttachment.setContentType("application/pdf");
+              stopwatch.finishStage("Added pdf attchement to mail");
+              message.send();
+              stopwatch.finishStage("Sent an email with pdf attachement");
+            }
 
           } else if (attachment instanceof ItemAttachment) {
             ItemAttachment itemAttachment = (ItemAttachment) attachment;
@@ -152,7 +152,7 @@ public class EmailScheduledTask {
     } catch (Exception e) {
       log.error(e.getMessage());
     }
-    timeStamp = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss").format(LocalDateTime.now());
+    timeStamp = FOMATTER.format(LocalDateTime.now());
     log.info("Invocation completed: {}", timeStamp);
   }
 
