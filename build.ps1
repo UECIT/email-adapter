@@ -33,8 +33,8 @@ Write-Host("Credentials will expire at: " + $Response.Expiration)
 
 mvn clean install dockerfile:build
 	
-docker tag nhsd/email-adapter:latest 410123189863.dkr.ecr.eu-west-1.amazonaws.com/email-adapter:latest
+docker tag nhsd/iucds-middleware:latest 410123189863.dkr.ecr.eu-west-1.amazonaws.com/email-adapter:latest
 
 docker push 410123189863.dkr.ecr.eu-west-1.amazonaws.com/email-adapter:latest
 
-docker run -p 8080:8080 nhsd/email-adapter:latest --restart always
+docker run -p 8080:8080 nhsd/iucds-middleware:latest --restart always

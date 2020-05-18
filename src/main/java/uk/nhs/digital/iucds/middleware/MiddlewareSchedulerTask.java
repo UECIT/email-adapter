@@ -12,13 +12,14 @@
  * the License.
  */
 
-package uk.nhs.digital.emailadapter.schedulingtasks;
+package uk.nhs.digital.iucds.middleware;
 
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.jsoup.Jsoup;
@@ -56,25 +57,30 @@ import microsoft.exchange.webservices.data.search.FindItemsResults;
 import microsoft.exchange.webservices.data.search.ItemView;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter.SearchFilterCollection;
-import uk.nhs.digital.emailadapter.service.StagedStopwatch;
-import uk.nhs.digital.emailadapter.transformer.PDFTransformer;
+import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
+import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
+import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 
 @Slf4j
 @EnableAsync
 @Data
 @Component
-public class EmailScheduledTask {
+public class MiddlewareSchedulerTask {
 
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
-  private final ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
+  private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
   private final AWSSimpleSystemsManagement ssm =
       AWSSimpleSystemsManagementClientBuilder.defaultClient();
 
-  public EmailScheduledTask() throws Exception {
+  public MiddlewareSchedulerTask() throws Exception {
     ExchangeCredentials credentials =
         new WebCredentials(getParameter("username"), getParameter("password"));
     service.setCredentials(credentials);
     service.autodiscoverUrl(getParameter("username"));
+  }
+
+  public MiddlewareSchedulerTask(ExchangeService service) {
+    this.service = service;
   }
 
   @Async
@@ -96,7 +102,8 @@ public class EmailScheduledTask {
           service.findItems(WellKnownFolderName.Inbox, searchFilterCollection, view);
 
       while (findResults.getTotalCount() > 0) {
-        for (Object item : findResults.getItems()) {
+        ArrayList<Item> items = findResults.getItems();
+        for (Object item : items) {
           try {
             EmailMessage emailMessage = (EmailMessage) item;
             emailMessage.load(
@@ -114,6 +121,10 @@ public class EmailScheduledTask {
                 Document doc = Jsoup.parse(htmlString);
                 byte[] transform = new PDFTransformer().transform(doc.html());
                 stopwatch.finishStage("pdf transformation");
+                
+                String sendMDMResponse = HapiSendMDMClient.sendMDM(transform);
+                log.info("Sent MDM: {} ", sendMDMResponse);
+
                 // Create an email message and set properties on the message.
                 EmailMessage message = new EmailMessage(service);
                 message.setSubject(getParameter("EMS_REPORT_SUBJECT"));

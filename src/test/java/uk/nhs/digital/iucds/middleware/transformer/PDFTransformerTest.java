@@ -1,4 +1,4 @@
-package uk.nhs.digital.emailadapter.transformer;
+package uk.nhs.digital.iucds.middleware.transformer;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
+import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
 
 public class PDFTransformerTest {
 
