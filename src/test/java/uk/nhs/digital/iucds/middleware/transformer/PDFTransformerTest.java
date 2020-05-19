@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
-import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
 
 public class PDFTransformerTest {
 
