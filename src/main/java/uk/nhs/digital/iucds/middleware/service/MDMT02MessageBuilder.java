@@ -9,6 +9,7 @@ import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v24.datatype.ED;
 import ca.uhn.hl7v2.model.v24.datatype.PL;
+import ca.uhn.hl7v2.model.v24.datatype.TS;
 import ca.uhn.hl7v2.model.v24.datatype.XAD;
 import ca.uhn.hl7v2.model.v24.datatype.XCN;
 import ca.uhn.hl7v2.model.v24.datatype.XPN;
@@ -18,6 +19,7 @@ import ca.uhn.hl7v2.model.v24.segment.MSH;
 import ca.uhn.hl7v2.model.v24.segment.OBX;
 import ca.uhn.hl7v2.model.v24.segment.PID;
 import ca.uhn.hl7v2.model.v24.segment.PV1;
+import ca.uhn.hl7v2.model.v24.segment.TXA;
 
 public class MDMT02MessageBuilder {
 
@@ -90,7 +92,10 @@ public class MDMT02MessageBuilder {
     pv1.getAdmitDateTime().getTimeOfAnEvent().setValue(getCurrentTimeStamp());
   }
 
-  private void CreateTxaSegment() {
+  private void CreateTxaSegment() throws DataTypeException {
+    TXA txa = _mdmt02Message.getTXA();
+    txa.getDocumentType().setValue("DS");
+    txa.getActivityDateTime().getTimeOfAnEvent().setValue(getCurrentTimeStamp());
   }
   
   private void CreateObxSegment(byte[] transform) throws DataTypeException, IOException {
