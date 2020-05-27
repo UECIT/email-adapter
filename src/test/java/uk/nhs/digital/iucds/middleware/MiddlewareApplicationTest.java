@@ -27,6 +27,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.util.MimeTypeUtils;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
+import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest;
+import com.amazonaws.services.simplesystemsmanagement.model.GetParameterResult;
+import com.amazonaws.services.simplesystemsmanagement.model.Parameter;
 import microsoft.exchange.webservices.data.core.ExchangeService;
 import microsoft.exchange.webservices.data.core.enumeration.misc.ExchangeVersion;
 import microsoft.exchange.webservices.data.core.enumeration.property.WellKnownFolderName;
@@ -38,6 +41,7 @@ import microsoft.exchange.webservices.data.property.complex.FileAttachment;
 import microsoft.exchange.webservices.data.search.FindItemsResults;
 import microsoft.exchange.webservices.data.search.ItemView;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter.SearchFilterCollection;
+import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
 
 @SpringBootTest
 public class MiddlewareApplicationTest {
@@ -71,14 +75,42 @@ public class MiddlewareApplicationTest {
   @Mock
   private FileAttachment attachment;
 
+  @Spy
+  private GetParameterResult result;
+
+  @Spy
+  private Parameter param;
+  
+  @Spy
+  private HapiSendMDMClient client;
+  
+  @Spy
+  private Parameter param1;
+  
+  @Spy
+  private GetParameterResult result1;
+  
+  @Spy
+  private Parameter param2;
+  
   private MiddlewareSchedulerTask getSut() throws Exception {
-    return new MiddlewareSchedulerTask(service);
+    return new MiddlewareSchedulerTask(service, ssm, client);
   }
 
   @Test
   public void contextLoads() throws Exception {
     items.getItems().add(message);
     item.add(message);
+    Mockito.when(ssm.getParameter(Mockito.any(GetParameterRequest.class))).thenReturn(result);
+    Mockito.when(result.getParameter()).thenReturn(param);
+    Mockito.when(param.getValue()).thenReturn("test");
+    Mockito.when(ssm.getParameter(new GetParameterRequest().withName("EMAIL_ITEM_VIEW"))).thenReturn(result);
+    Mockito.when(result.getParameter()).thenReturn(param1);
+    Mockito.when(param1.getValue()).thenReturn("100");
+    Mockito.when(ssm.getParameter(new GetParameterRequest().withName("PORT_NUMBER"))).thenReturn(result);
+    Mockito.when(result.getParameter()).thenReturn(param2);
+    Mockito.when(param2.getValue()).thenReturn("4646");
+    
     Mockito
         .when(service.findItems(Mockito.any(WellKnownFolderName.class),
             Mockito.any(SearchFilterCollection.class), Mockito.any(ItemView.class)))
@@ -93,7 +125,8 @@ public class MiddlewareApplicationTest {
     Mockito.when(attachment.getContentType()).thenReturn(MimeTypeUtils.TEXT_HTML_VALUE);
     Mockito.when(attachment.getContent()).thenReturn(FileUtils.readFileToByteArray(new File(HTML_FILE)));
     Mockito.when(service.getRequestedServerVersion()).thenReturn(ExchangeVersion.Exchange2010_SP2);
-    
+    Mockito.doNothing().when(client).sendMDM(Mockito.any());
+
     getSut().sendMails();
 
     // Basic integration test that shows the context starts up properly
