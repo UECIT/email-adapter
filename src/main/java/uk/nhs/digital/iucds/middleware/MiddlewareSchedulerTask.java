@@ -12,7 +12,7 @@
  * the License.
  */
 
-package uk.nhs.digital.emailadapter.schedulingtasks;
+package uk.nhs.digital.iucds.middleware;
 
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -56,25 +56,34 @@ import microsoft.exchange.webservices.data.search.FindItemsResults;
 import microsoft.exchange.webservices.data.search.ItemView;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter.SearchFilterCollection;
-import uk.nhs.digital.emailadapter.service.StagedStopwatch;
-import uk.nhs.digital.emailadapter.transformer.PDFTransformer;
+import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
+import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
+import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 
 @Slf4j
 @EnableAsync
 @Data
 @Component
-public class EmailScheduledTask {
+public class MiddlewareSchedulerTask {
 
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
-  private final ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
-  private final AWSSimpleSystemsManagement ssm =
+  private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
+  private AWSSimpleSystemsManagement ssm =
       AWSSimpleSystemsManagementClientBuilder.defaultClient();
+  private HapiSendMDMClient client;
 
-  public EmailScheduledTask() throws Exception {
+  public MiddlewareSchedulerTask() throws Exception {
     ExchangeCredentials credentials =
         new WebCredentials(getParameter("username"), getParameter("password"));
     service.setCredentials(credentials);
     service.autodiscoverUrl(getParameter("username"));
+    new HapiSendMDMClient(getParameter("TCP_HOST"), getParameter("PORT_NUMBER"));
+  }
+
+  public MiddlewareSchedulerTask(ExchangeService service, AWSSimpleSystemsManagement ssm, HapiSendMDMClient client) {
+    this.service = service;
+    this.ssm = ssm;
+    this.client = client;
   }
 
   @Async
@@ -114,6 +123,10 @@ public class EmailScheduledTask {
                 Document doc = Jsoup.parse(htmlString);
                 byte[] transform = new PDFTransformer().transform(doc.html());
                 stopwatch.finishStage("pdf transformation");
+                
+                client.sendMDM(transform);
+                stopwatch.finishStage("Sent MDM");
+
                 // Create an email message and set properties on the message.
                 EmailMessage message = new EmailMessage(service);
                 message.setSubject(getParameter("EMS_REPORT_SUBJECT"));

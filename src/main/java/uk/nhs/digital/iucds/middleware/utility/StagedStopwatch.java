@@ -1,4 +1,4 @@
-package uk.nhs.digital.emailadapter.service;
+package uk.nhs.digital.iucds.middleware.utility;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -10,7 +10,7 @@ public class StagedStopwatch {
   private Instant stageStart = Instant.now();
 
   private StagedStopwatch() {
-    log.info("Timing started at {} ", stageStart, '\n');
+    log.info("Timing started at {} ", stageStart);
   }
 
   public void finishStage(String stageName) {

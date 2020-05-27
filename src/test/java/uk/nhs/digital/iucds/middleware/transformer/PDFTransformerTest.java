@@ -1,4 +1,4 @@
-package uk.nhs.digital.emailadapter.transformer;
+package uk.nhs.digital.iucds.middleware.transformer;
 
 import java.io.File;
 import java.io.IOException;
