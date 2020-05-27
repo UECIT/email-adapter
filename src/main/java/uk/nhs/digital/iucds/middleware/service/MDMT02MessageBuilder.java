@@ -9,7 +9,6 @@ import ca.uhn.hl7v2.model.DataTypeException;
 import ca.uhn.hl7v2.model.Varies;
 import ca.uhn.hl7v2.model.v24.datatype.ED;
 import ca.uhn.hl7v2.model.v24.datatype.PL;
-import ca.uhn.hl7v2.model.v24.datatype.TS;
 import ca.uhn.hl7v2.model.v24.datatype.XAD;
 import ca.uhn.hl7v2.model.v24.datatype.XCN;
 import ca.uhn.hl7v2.model.v24.datatype.XPN;
@@ -92,10 +91,22 @@ public class MDMT02MessageBuilder {
     pv1.getAdmitDateTime().getTimeOfAnEvent().setValue(getCurrentTimeStamp());
   }
 
-  private void CreateTxaSegment() throws DataTypeException {
+  private void CreateTxaSegment() throws HL7Exception {
     TXA txa = _mdmt02Message.getTXA();
+    txa.getTxa1_SetIDTXA().setValue("1");
     txa.getDocumentType().setValue("DS");
+    txa.getTxa3_DocumentContentPresentation().setValue("ED");
     txa.getActivityDateTime().getTimeOfAnEvent().setValue(getCurrentTimeStamp());
+    txa.insertTxa5_PrimaryActivityProviderCodeName(0).getXcn2_FamilyName().getSurname().setValue("Foster");
+    txa.insertTxa5_PrimaryActivityProviderCodeName(0).getXcn3_GivenName().setValue("John");
+    txa.insertTxa5_PrimaryActivityProviderCodeName(0).getXcn4_SecondAndFurtherGivenNamesOrInitialsThereof().setValue("Harry");
+    txa.insertTxa5_PrimaryActivityProviderCodeName(0).getXcn6_PrefixEgDR().setValue("Dr");
+    txa.getTxa6_OriginationDateTime().getTs1_TimeOfAnEvent().setValue(getCurrentTimeStamp());
+    txa.getTxa7_TranscriptionDateTime().getTs1_TimeOfAnEvent().setValue(getCurrentTimeStamp());
+    txa.getTxa8_EditDateTime(0).getTs1_TimeOfAnEvent().setValue(getCurrentTimeStamp());
+    txa.getTxa12_UniqueDocumentNumber().getEi2_NamespaceID().setValue("MYDOC00001");
+    txa.getTxa16_UniqueDocumentFileName().setValue("hapi quick reference.pdf");
+    txa.getTxa17_DocumentCompletionStatus().setValue("AU");
   }
   
   private void CreateObxSegment(byte[] transform) throws DataTypeException, IOException {

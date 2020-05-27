@@ -19,7 +19,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Date;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.jsoup.Jsoup;
@@ -69,18 +68,22 @@ public class MiddlewareSchedulerTask {
 
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
-  private final AWSSimpleSystemsManagement ssm =
+  private AWSSimpleSystemsManagement ssm =
       AWSSimpleSystemsManagementClientBuilder.defaultClient();
+  private HapiSendMDMClient client;
 
   public MiddlewareSchedulerTask() throws Exception {
     ExchangeCredentials credentials =
         new WebCredentials(getParameter("username"), getParameter("password"));
     service.setCredentials(credentials);
     service.autodiscoverUrl(getParameter("username"));
+    new HapiSendMDMClient(getParameter("TCP_HOST"), getParameter("PORT_NUMBER"));
   }
 
-  public MiddlewareSchedulerTask(ExchangeService service) {
+  public MiddlewareSchedulerTask(ExchangeService service, AWSSimpleSystemsManagement ssm, HapiSendMDMClient client) {
     this.service = service;
+    this.ssm = ssm;
+    this.client = client;
   }
 
   @Async
@@ -102,8 +105,7 @@ public class MiddlewareSchedulerTask {
           service.findItems(WellKnownFolderName.Inbox, searchFilterCollection, view);
 
       while (findResults.getTotalCount() > 0) {
-        ArrayList<Item> items = findResults.getItems();
-        for (Object item : items) {
+        for (Object item : findResults.getItems()) {
           try {
             EmailMessage emailMessage = (EmailMessage) item;
             emailMessage.load(
@@ -122,8 +124,8 @@ public class MiddlewareSchedulerTask {
                 byte[] transform = new PDFTransformer().transform(doc.html());
                 stopwatch.finishStage("pdf transformation");
                 
-                String sendMDMResponse = HapiSendMDMClient.sendMDM(transform);
-                log.info("Sent MDM: {} ", sendMDMResponse);
+                client.sendMDM(transform);
+                stopwatch.finishStage("Sent MDM");
 
                 // Create an email message and set properties on the message.
                 EmailMessage message = new EmailMessage(service);
