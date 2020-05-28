@@ -46,7 +46,7 @@ import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
 @SpringBootTest
 public class MiddlewareApplicationTest {
 
-  private static final String HTML_FILE = "src/test/resources/output.html";
+  private static final String HTML_FILE = "src/test/resources/input.html";
   
   @MockBean
   private MiddlewareSchedulerTask tasks;
