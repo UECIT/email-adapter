@@ -9,11 +9,6 @@ By using the EWS Java API, you can access almost all the information stored in a
 ## Source Code Location
 The repository for this project is located in a public GitHub space here: https://github.com/UECIT/email-adapter
 
-## Build Steps
-1. add {MFA_USER_ARN} in build.ps1 script
-2. add {ROLE_ARN} in build.os1 script
-3. run build.ps1 script from powershell
-
 ## Licence
 
 Unless stated otherwise, the codebase is released under [the MIT License][mit].
