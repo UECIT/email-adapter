@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class PDFTransformerTest {
 
-  public static final String OUTPUT_PATH = "target/test/resources/output.pdf";
+  public static final String OUTPUT_PATH = "target/test-output/resources/output.pdf";
   public static final String HTML_FILE = "src/test/resources/input.html";
 
   private PDFTransformer pdfTransformer;
