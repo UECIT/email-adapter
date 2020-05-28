@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 public class HapiSendMDMClientTest {
 
-  private static final String HTML_FILE = "src/test/resources/output.html";
+  private static final String HTML_FILE = "src/test/resources/input.html";
   
   private HapiSendMDMClient getSut() throws Exception {
     return new HapiSendMDMClient("localhost", "5656");

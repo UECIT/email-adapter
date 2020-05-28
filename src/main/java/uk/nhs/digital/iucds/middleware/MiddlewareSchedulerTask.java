@@ -77,7 +77,7 @@ public class MiddlewareSchedulerTask {
         new WebCredentials(getParameter("username"), getParameter("password"));
     service.setCredentials(credentials);
     service.autodiscoverUrl(getParameter("username"));
-    new HapiSendMDMClient(getParameter("TCP_HOST"), getParameter("PORT_NUMBER"));
+    client = new HapiSendMDMClient(getParameter("TCP_HOST"), getParameter("PORT_NUMBER"));
   }
 
   public MiddlewareSchedulerTask(ExchangeService service, AWSSimpleSystemsManagement ssm, HapiSendMDMClient client) {
