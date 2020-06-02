@@ -57,6 +57,7 @@ import microsoft.exchange.webservices.data.search.ItemView;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter.SearchFilterCollection;
 import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
+import uk.nhs.digital.iucds.middleware.client.SftpClient;
 import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
 import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 
@@ -70,20 +71,22 @@ public class MiddlewareSchedulerTask {
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
   private AWSSimpleSystemsManagement ssm =
       AWSSimpleSystemsManagementClientBuilder.defaultClient();
-  private HapiSendMDMClient client;
+  private HapiSendMDMClient mdmClient;
+  private SftpClient sftpClient;
 
   public MiddlewareSchedulerTask() throws Exception {
     ExchangeCredentials credentials =
         new WebCredentials(getParameter("username"), getParameter("password"));
     service.setCredentials(credentials);
     service.autodiscoverUrl(getParameter("username"));
-    client = new HapiSendMDMClient(getParameter("TCP_HOST"), getParameter("PORT_NUMBER"));
+    mdmClient = new HapiSendMDMClient(getParameter("TCP_HOST"), getParameter("PORT_NUMBER"));
+    sftpClient = new SftpClient(getParameter("SFTP_HOST"), getParameter("SFTP_PORT"), getParameter("SFTP_USER"), getParameter("SFTP_SSH_KEY"), getParameter("SFTP_TARGET_DIR"));
   }
 
   public MiddlewareSchedulerTask(ExchangeService service, AWSSimpleSystemsManagement ssm, HapiSendMDMClient client) {
     this.service = service;
     this.ssm = ssm;
-    this.client = client;
+    this.mdmClient = client;
   }
 
   @Async
@@ -124,9 +127,12 @@ public class MiddlewareSchedulerTask {
                 byte[] transform = new PDFTransformer().transform(doc.html());
                 stopwatch.finishStage("pdf transformation");
                 
-                client.sendMDM(transform);
+                //mdmClient.sendMDM(transform);
                 stopwatch.finishStage("Sent MDM");
 
+                sftpClient.SendFileToServer(transform, createFileName(doc));
+                stopwatch.finishStage("File transfered successfully");
+                
                 // Create an email message and set properties on the message.
                 EmailMessage message = new EmailMessage(service);
                 message.setSubject(getParameter("EMS_REPORT_SUBJECT"));
