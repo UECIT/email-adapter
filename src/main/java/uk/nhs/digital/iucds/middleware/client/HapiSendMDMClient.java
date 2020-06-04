@@ -19,7 +19,7 @@ import uk.nhs.digital.iucds.middleware.service.MDMT02MessageBuilder;
 public class HapiSendMDMClient {
 
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
-  private static HapiContext context = new DefaultHapiContext();
+  private HapiContext context = new DefaultHapiContext();
   private String TCP_HOST;
   private String PORT_NUMBER;
 
@@ -34,7 +34,7 @@ public class HapiSendMDMClient {
   public void sendMDM(byte[] transform) {
     
     try {
-      MDM_T02 build = new MDMT02MessageBuilder().Build(transform);
+      MDM_T02 build = new MDMT02MessageBuilder().build(transform);
       Connection connection = context.newClient(TCP_HOST, Integer.parseInt(PORT_NUMBER), false);
 
       Initiator initiator = connection.getInitiator();
