@@ -57,6 +57,8 @@ import microsoft.exchange.webservices.data.search.ItemView;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter.SearchFilterCollection;
 import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
+import uk.nhs.digital.iucds.middleware.service.NHS111ReportDataBuilder;
+import uk.nhs.digital.iucds.middleware.transformer.HTMLReportTransformer;
 import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
 import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 
@@ -71,13 +73,15 @@ public class MiddlewareSchedulerTask {
   private AWSSimpleSystemsManagement ssm =
       AWSSimpleSystemsManagementClientBuilder.defaultClient();
   private HapiSendMDMClient client;
-
+  private NHS111ReportDataBuilder reportBuilder;
+ 
   public MiddlewareSchedulerTask() throws Exception {
     ExchangeCredentials credentials =
         new WebCredentials(getParameter("username"), getParameter("password"));
     service.setCredentials(credentials);
     service.autodiscoverUrl(getParameter("username"));
     client = new HapiSendMDMClient(getParameter("TCP_HOST"), getParameter("PORT_NUMBER"));
+    reportBuilder = new NHS111ReportDataBuilder();
   }
 
   public MiddlewareSchedulerTask(ExchangeService service, AWSSimpleSystemsManagement ssm, HapiSendMDMClient client) {
@@ -121,7 +125,12 @@ public class MiddlewareSchedulerTask {
                 // convert bytes[] to string
                 String htmlString = new String(fileAttachment.getContent(), StandardCharsets.UTF_8);
                 Document doc = Jsoup.parse(htmlString);
-                byte[] transform = new PDFTransformer().transform(doc.html());
+                
+                NHS111ReportData buildNhs111Report = reportBuilder.buildNhs111Report(doc);
+                stopwatch.finishStage("NHS 111 Report transformation");
+                
+                String nhs111ReportString = new HTMLReportTransformer().transform(buildNhs111Report);
+                byte[] transform = new PDFTransformer().transform(Jsoup.parse(nhs111ReportString).html());
                 stopwatch.finishStage("pdf transformation");
                 
                 client.sendMDM(transform);
