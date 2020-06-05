@@ -42,12 +42,15 @@ import microsoft.exchange.webservices.data.search.FindItemsResults;
 import microsoft.exchange.webservices.data.search.ItemView;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter.SearchFilterCollection;
 import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
+import uk.nhs.digital.iucds.middleware.service.NHS111ReportDataBuilder;
+import uk.nhs.digital.iucds.middleware.transformer.HTMLReportTransformer;
+import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
 
 @SpringBootTest
 public class MiddlewareApplicationTest {
 
   private static final String HTML_FILE = "src/test/resources/input.html";
-  
+
   @MockBean
   private MiddlewareSchedulerTask tasks;
 
@@ -80,21 +83,31 @@ public class MiddlewareApplicationTest {
 
   @Spy
   private Parameter param;
-  
+
   @Spy
   private HapiSendMDMClient client;
-  
+
   @Spy
   private Parameter param1;
-  
+
   @Spy
   private GetParameterResult result1;
-  
+
   @Spy
   private Parameter param2;
-  
+
+  @Mock
+  private NHS111ReportDataBuilder reportBuilder;
+
+  @Mock
+  private HTMLReportTransformer htmlReportTransformer;
+
+  @Mock
+  private PDFTransformer pdfTransformer;
+
   private MiddlewareSchedulerTask getSut() throws Exception {
-    return new MiddlewareSchedulerTask(service, ssm, client);
+    return new MiddlewareSchedulerTask(service, ssm, client, reportBuilder, htmlReportTransformer,
+        pdfTransformer);
   }
 
   @Test
@@ -104,13 +117,15 @@ public class MiddlewareApplicationTest {
     Mockito.when(ssm.getParameter(Mockito.any(GetParameterRequest.class))).thenReturn(result);
     Mockito.when(result.getParameter()).thenReturn(param);
     Mockito.when(param.getValue()).thenReturn("test");
-    Mockito.when(ssm.getParameter(new GetParameterRequest().withName("EMAIL_ITEM_VIEW"))).thenReturn(result);
+    Mockito.when(ssm.getParameter(new GetParameterRequest().withName("EMAIL_ITEM_VIEW")))
+        .thenReturn(result);
     Mockito.when(result.getParameter()).thenReturn(param1);
     Mockito.when(param1.getValue()).thenReturn("100");
-    Mockito.when(ssm.getParameter(new GetParameterRequest().withName("PORT_NUMBER"))).thenReturn(result);
+    Mockito.when(ssm.getParameter(new GetParameterRequest().withName("PORT_NUMBER")))
+        .thenReturn(result);
     Mockito.when(result.getParameter()).thenReturn(param2);
     Mockito.when(param2.getValue()).thenReturn("4646");
-    
+
     Mockito
         .when(service.findItems(Mockito.any(WellKnownFolderName.class),
             Mockito.any(SearchFilterCollection.class), Mockito.any(ItemView.class)))
@@ -123,7 +138,8 @@ public class MiddlewareApplicationTest {
     Mockito.when(attachments.getItems()).thenReturn(attachmectItems);
     Mockito.when(attachmectItems.get(0)).thenReturn(attachment);
     Mockito.when(attachment.getContentType()).thenReturn(MimeTypeUtils.TEXT_HTML_VALUE);
-    Mockito.when(attachment.getContent()).thenReturn(FileUtils.readFileToByteArray(new File(HTML_FILE)));
+    Mockito.when(attachment.getContent())
+        .thenReturn(FileUtils.readFileToByteArray(new File(HTML_FILE)));
     Mockito.when(service.getRequestedServerVersion()).thenReturn(ExchangeVersion.Exchange2010_SP2);
     Mockito.doNothing().when(client).sendMDM(Mockito.any());
 

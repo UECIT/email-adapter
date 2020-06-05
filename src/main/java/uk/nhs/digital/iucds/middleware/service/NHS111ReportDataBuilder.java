@@ -5,12 +5,17 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
+import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 import uk.nhs.digital.iucds.middleware.NHS111ReportData;
 
 @Slf4j
+@Component
 public class NHS111ReportDataBuilder {
 
+  public NHS111ReportDataBuilder() {
+  }
+  
   public NHS111ReportData buildNhs111Report(Document doc) throws IOException {
     NHS111ReportData report = new NHS111ReportData();
     log.info(doc.getElementsByClass("doctitle").text());
