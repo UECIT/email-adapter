@@ -58,6 +58,8 @@ import microsoft.exchange.webservices.data.search.ItemView;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter.SearchFilterCollection;
 import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
+import uk.nhs.digital.iucds.middleware.service.NHS111ReportDataBuilder;
+import uk.nhs.digital.iucds.middleware.transformer.HTMLReportTransformer;
 import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
 import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 
@@ -69,10 +71,12 @@ public class MiddlewareSchedulerTask {
 
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
-  private AWSSimpleSystemsManagement ssm =
-      AWSSimpleSystemsManagementClientBuilder.defaultClient();
+  private AWSSimpleSystemsManagement ssm = AWSSimpleSystemsManagementClientBuilder.defaultClient();
   private HapiSendMDMClient client;
   private StagedStopwatch stopwatch = StagedStopwatch.start();
+  private NHS111ReportDataBuilder reportBuilder;
+  private HTMLReportTransformer htmlReportTransformer;
+  private PDFTransformer pdfTransformer;
 
   public MiddlewareSchedulerTask() throws Exception {
     ExchangeCredentials credentials =
@@ -80,12 +84,20 @@ public class MiddlewareSchedulerTask {
     service.setCredentials(credentials);
     service.autodiscoverUrl(getParameter("username"));
     client = new HapiSendMDMClient(getParameter("TCP_HOST"), getParameter("PORT_NUMBER"));
+    reportBuilder = new NHS111ReportDataBuilder();
+    htmlReportTransformer = new HTMLReportTransformer();
+    pdfTransformer = new PDFTransformer();
   }
 
-  public MiddlewareSchedulerTask(ExchangeService service, AWSSimpleSystemsManagement ssm, HapiSendMDMClient client) {
+  public MiddlewareSchedulerTask(ExchangeService service, AWSSimpleSystemsManagement ssm,
+      HapiSendMDMClient client, NHS111ReportDataBuilder reportBuilder,
+      HTMLReportTransformer htmlReportTransformer, PDFTransformer pdfTransformer) {
     this.service = service;
     this.ssm = ssm;
     this.client = client;
+    this.reportBuilder = reportBuilder;
+    this.htmlReportTransformer = htmlReportTransformer;
+    this.pdfTransformer = pdfTransformer;
   }
 
   @Async
