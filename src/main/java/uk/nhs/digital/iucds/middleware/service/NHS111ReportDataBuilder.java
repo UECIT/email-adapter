@@ -13,148 +13,210 @@ import uk.nhs.digital.iucds.middleware.NHS111ReportData;
 @Component
 public class NHS111ReportDataBuilder {
 
-  public NHS111ReportDataBuilder() {
-  }
-  
+  private static final String H1_STR = "h1";
+  private static final String H1_TAG = "<h1>";
+  private static final String EMPTY_STR = "";
+  private static final String SPACE = " ";
+  private static final String DOC_TITLE = "doctitle";
+  private static final String HEADER = "header";
+  private static final String TITLE_BAR = "titlebar";
+  private static final String FOOTER = "footer";
+  private static final String TABLE_STR = "table";
+  private static final String PATIENT_BANNER = "patientBanner";
+  private static final String BORN = "Born";
+  private static final String GENDER = "Gender";
+  private static final String NHS_NUMBER = "Unverified NHS No.";
+  private static final String LOCAL_PATIENT_ID = "Local Patient ID";
+  private static final String HOME_ADDR = "Home Address";
+  private static final String HOME_PHONE = "Home Phone";
+  private static final String MOBILE_PHONE = "Mobile Phone";
+  private static final String EMERGENCY_PHONE = "Emergency Phone";
+  private static final String GP_PRACTICE = "GP Practice";
+
+  NHS111ReportData report;
+
+  public NHS111ReportDataBuilder() {}
+
   public NHS111ReportData buildNhs111Report(Document doc) throws IOException {
-    NHS111ReportData report = new NHS111ReportData();
-    log.info(doc.getElementsByClass("doctitle").text());
-    report.setTitle(doc.getElementsByClass("doctitle").text());
-    String patientBanner = doc.getElementById("patientBanner").text();
-    String patientName = patientBanner.substring(0, patientBanner.indexOf("Born"));
+    report = new NHS111ReportData();
+
+    setDoctitle(doc);
+
+    buildPatientBanner(doc);
+
+    buildPatientsReportedCondition(doc);
+
+    buildSpecialPatientNotes(doc);
+
+    buildPathwaysDisposition(doc);
+
+    buildConsultationSummary(doc);
+
+    buildPathwaysAssessment(doc);
+
+    buildAdviceGiven(doc);
+
+    buildHeaderTable(doc);
+
+    buildTitlebarTable(doc);
+
+    buildFooter(doc);
+
+    return report;
+  }
+
+  private void buildPatientsReportedCondition(Document doc) {
+    Element element = doc.select(H1_STR).get(0);
+
+    String htmlString = getHtmlString(element);
+
+    report.setPatientsReportedCondition(htmlString.replaceAll(H1_TAG, EMPTY_STR));
+  }
+
+  private void buildSpecialPatientNotes(Document doc) {
+    Element element = doc.select(H1_STR).get(1);
+
+    String htmlString = getHtmlString(element);
+
+    report.setSpecialPatientNotes(htmlString.replaceAll(H1_TAG, EMPTY_STR));
+  }
+
+  private void buildPathwaysDisposition(Document doc) {
+    Element element = doc.select(H1_STR).get(2);
+
+    String htmlString = getHtmlString(element);
+
+    report.setPathwaysDisposition(htmlString.replaceAll(H1_TAG, EMPTY_STR));
+  }
+
+  private void buildConsultationSummary(Document doc) {
+    Element element = doc.select(H1_STR).get(3);
+    StringBuilder sb = new StringBuilder(element.toString());
+    sb.append("<span class=\"label\"><ul>");
+    Node node = element.nextSibling();
+    while (node != null && !node.nodeName().startsWith("h")) {
+      if (!node.outerHtml().equals("<br>") && !node.outerHtml().isEmpty()
+          && !node.outerHtml().equals(" ")) {
+        sb.append("<li>").append(node.outerHtml()).append("</li>");
+      }
+      node = node.nextSibling();
+    }
+    sb.append("</ul></span>");
+    report.setConsultationSummary(sb.toString().replaceAll(H1_TAG, EMPTY_STR));
+  }
+
+  private void buildPathwaysAssessment(Document doc) {
+    Element element = doc.select(H1_STR).get(4);
+    StringBuilder sb = new StringBuilder(element.toString());
+    sb.append("<span class=\"label\"><ul>");
+    Node node = element.nextSibling();
+    while (node != null && !node.nodeName().startsWith("h")) {
+      if (!node.outerHtml().equals("<br>") && !node.outerHtml().isEmpty()) {
+        sb.append("<li>").append(node.outerHtml()).append("</li>");
+      }
+      node = node.nextSibling();
+    }
+    sb.append("</ul></span>");
+    report.setPathwaysAssessment(sb.toString().replaceAll(H1_TAG, EMPTY_STR));
+  }
+
+  private void buildAdviceGiven(Document doc) {
+    Element element = doc.select(H1_STR).get(5);
+    StringBuilder sb = new StringBuilder(element.toString());
+
+    Node node = element.nextSibling();
+    sb.append("<span class=\"label\">");
+    while (node != null && !node.nodeName().startsWith("d")) {
+      sb.append(node.outerHtml());
+      node = node.nextSibling();
+    }
+    sb.append("</span>");
+    report.setAdviceGiven(sb.toString().replaceAll(H1_TAG, EMPTY_STR));
+  }
+
+  private String getHtmlString(Element element) {
+    StringBuilder sb = new StringBuilder(element.toString());
+
+    Node node = element.nextSibling();
+    sb.append("<span class=\"label\">");
+    while (node != null && !node.nodeName().startsWith("h")) {
+      sb.append(node.outerHtml());
+      node = node.nextSibling();
+    }
+    sb.append("</span>");
+    return sb.toString();
+  }
+
+  private void buildHeaderTable(Document doc) {
+    String header = doc.getElementsByClass(HEADER).select(TABLE_STR).get(1).html();
+    report.setHeader(header);
+  }
+
+  private void buildTitlebarTable(Document doc) {
+    String titlebar = doc.getElementsByClass(TITLE_BAR).select(TABLE_STR).html();
+    report.setTitlebar(titlebar);
+  }
+
+  private void buildFooter(Document doc) {
+    String footer = doc.getElementsByClass(FOOTER).html();
+    report.setFooter(footer);
+  }
+
+  private void setDoctitle(Document doc) {
+    log.info(doc.getElementsByClass(DOC_TITLE).text());
+    report.setTitle(doc.getElementsByClass(DOC_TITLE).text());
+  }
+
+  private void buildPatientBanner(Document doc) {
+    String patientBanner = doc.getElementById(PATIENT_BANNER).text();
+    String patientName = patientBanner.substring(0, patientBanner.indexOf(BORN));
     report.setTitle(
-        patientName.replaceAll(", ", " ") + " - " + doc.getElementsByClass("doctitle").text());
+        patientName.replaceAll(", ", SPACE) + " - " + doc.getElementsByClass(DOC_TITLE).text());
     log.info(patientBanner);
     log.info(patientName);
     report.setPatientName(patientName);
     String dob =
-        patientBanner.substring(patientBanner.lastIndexOf("Born"), patientBanner.indexOf("Gender"));
+        patientBanner.substring(patientBanner.lastIndexOf(BORN), patientBanner.indexOf(GENDER));
     log.info(dob);
-    String gender = patientBanner.substring(patientBanner.lastIndexOf("Gender"),
-        patientBanner.indexOf("Unverified NHS No."));
+    String gender = patientBanner.substring(patientBanner.lastIndexOf(GENDER),
+        patientBanner.indexOf(NHS_NUMBER));
     log.info(gender);
-    String nhsNo = patientBanner.substring(patientBanner.lastIndexOf("Unverified NHS No."),
-        patientBanner.indexOf("Local Patient ID"));
+    String nhsNo = patientBanner.substring(patientBanner.lastIndexOf(NHS_NUMBER),
+        patientBanner.indexOf(LOCAL_PATIENT_ID));
     log.info(nhsNo);
-    String localPatientId = patientBanner.substring(patientBanner.lastIndexOf("Local Patient ID"),
-        patientBanner.indexOf("Home Address"));
+    String localPatientId = patientBanner.substring(patientBanner.lastIndexOf(LOCAL_PATIENT_ID),
+        patientBanner.indexOf(HOME_ADDR));
     log.info(localPatientId);
-    log.info(patientBanner.substring(patientBanner.lastIndexOf("Home Address"),
-        patientBanner.indexOf("Home Phone")));
-    String homePhone = patientBanner.substring(patientBanner.lastIndexOf("Home Phone"),
-        patientBanner.indexOf("Mobile Phone"));
-    log.info(homePhone.split(" ")[2]);
-    String mobilePhone = patientBanner.substring(patientBanner.lastIndexOf("Mobile Phone"),
-        patientBanner.indexOf("Emergency Phone"));
-    log.info(mobilePhone.split(" ")[2]);
-    String emergencyPhone = patientBanner.substring(patientBanner.lastIndexOf("Emergency Phone"),
-        patientBanner.indexOf("GP Practice"));
-    log.info(emergencyPhone.split(" ")[2]);
+    log.info(patientBanner.substring(patientBanner.lastIndexOf(HOME_ADDR),
+        patientBanner.indexOf(HOME_PHONE)));
+    String homePhone = patientBanner.substring(patientBanner.lastIndexOf(HOME_PHONE),
+        patientBanner.indexOf(MOBILE_PHONE));
+    log.info(homePhone.split(SPACE)[2]);
+    String mobilePhone = patientBanner.substring(patientBanner.lastIndexOf(MOBILE_PHONE),
+        patientBanner.indexOf(EMERGENCY_PHONE));
+    log.info(mobilePhone.split(SPACE)[2]);
+    String emergencyPhone = patientBanner.substring(patientBanner.lastIndexOf(EMERGENCY_PHONE),
+        patientBanner.indexOf(GP_PRACTICE));
+    log.info(emergencyPhone.split(SPACE)[2]);
     log.info(
-        patientBanner.substring(patientBanner.lastIndexOf("GP Practice"), patientBanner.length()));
-    Element table = doc.getElementById("patientBanner").select("table").get(1);
+        patientBanner.substring(patientBanner.lastIndexOf(GP_PRACTICE), patientBanner.length()));
+    Element table = doc.getElementById(PATIENT_BANNER).select(TABLE_STR).get(1);
     Elements rows = table.select("tr");
     Element row = rows.get(0);
     Elements cols = row.select("td");
-    String html2 = cols.get(0).select("p").html();
-    log.info(html2);
-    report.setHomeAddress(html2.replaceAll("Home Address\n", ""));
-    String html3 = cols.get(2).select("p").html();
-    log.info(html3);
-    report.setGpAddress(html3.replaceAll("GP Practice\n", ""));
+    String homeAddress = cols.get(0).select("p").html();
+    log.info(homeAddress);
+    report.setHomeAddress(homeAddress.replaceAll(HOME_ADDR + "\n", EMPTY_STR));
+    String gpPractice = cols.get(2).select("p").html();
+    log.info(gpPractice);
+    report.setGpAddress(gpPractice.replaceAll(GP_PRACTICE + "\n", EMPTY_STR));
 
-    Element ele0 = doc.select("h1").get(0);
-    StringBuilder sb0 = new StringBuilder(ele0.toString());
-
-    Node next0 = ele0.nextSibling();
-    sb0.append("<span class=\"label\">");
-    while (next0 != null && !next0.nodeName().startsWith("h")) {
-      sb0.append(next0.outerHtml());
-      next0 = next0.nextSibling();
-    }
-    sb0.append("</span>");
-    report.setPatientsReportedCondition(sb0.toString().replaceAll("<h1>", ""));
-
-    Element ele4 = doc.select("h1").get(1);
-    StringBuilder sb4 = new StringBuilder(ele4.toString());
-
-    Node next4 = ele4.nextSibling();
-    sb4.append("<span class=\"label\">");
-    while (next4 != null && !next4.nodeName().startsWith("h")) {
-      sb4.append(next4.outerHtml());
-      next4 = next4.nextSibling();
-    }
-    sb4.append("</span>");
-    report.setSpecialPatientNotes(sb4.toString().replaceAll("<h1>", ""));
-
-    Element ele2 = doc.select("h1").get(2);
-    StringBuilder sb3 = new StringBuilder(ele2.toString());
-
-    Node next3 = ele2.nextSibling();
-    sb3.append("<span class=\"label\">");
-    while (next3 != null && !next3.nodeName().startsWith("h")) {
-      sb3.append(next3.outerHtml());
-      next3 = next3.nextSibling();
-    }
-    sb3.append("</span>");
-    report.setPathwaysDisposition(sb3.toString().replaceAll("<h1>", ""));
-
-    Element element = doc.select("h1").get(3);
-    StringBuilder sb = new StringBuilder(element.toString());
-    sb.append("<span class=\"label\"><ul>");
-    Node next = element.nextSibling();
-    while (next != null && !next.nodeName().startsWith("h")) {
-      if (!next.outerHtml().equals("<br>") && !next.outerHtml().isEmpty()
-          && !next.outerHtml().equals(" ")) {
-        sb.append("<li>").append(next.outerHtml()).append("</li>");
-      }
-      next = next.nextSibling();
-    }
-    sb.append("</ul></span>");
-    report.setConsultationSummary(sb.toString().replaceAll("<h1>", ""));
-
-    Element element1 = doc.select("h1").get(4);
-    StringBuilder sb1 = new StringBuilder(element1.toString());
-    sb1.append("<span class=\"label\"><ul>");
-    Node next1 = element1.nextSibling();
-    while (next1 != null && !next1.nodeName().startsWith("h")) {
-      if (!next1.outerHtml().equals("<br>") && !next1.outerHtml().isEmpty()) {
-        sb1.append("<li>").append(next1.outerHtml()).append("</li>");
-      }
-      next1 = next1.nextSibling();
-    }
-    sb1.append("</ul></span>");
-    report.setPathwaysAssessment(sb1.toString().replaceAll("<h1>", ""));
-
-    Element ele = doc.select("h1").get(5);
-    StringBuilder sb2 = new StringBuilder(ele.toString());
-
-    Node next2 = ele.nextSibling();
-    sb2.append("<span class=\"label\">");
-    while (next2 != null && !next2.nodeName().startsWith("d")) {
-      sb2.append(next2.outerHtml());
-      next2 = next2.nextSibling();
-    }
-    sb2.append("</span>");
-    report.setAdviceGiven(sb2.toString().replaceAll("<h1>", ""));
-
-    report.setDob(dob.split(" ")[1]);
-    report.setGender(gender.split(" ")[1]);
-    report.setNhsNo(nhsNo.split(" ")[3] + nhsNo.split(" ")[4] + nhsNo.split(" ")[5]);
-    report.setLocalPatientId(localPatientId.split(" ")[3]);
-    report.setHomePhone(homePhone.split(" ")[2]);
-    report.setMobilePhone(mobilePhone.split(" ")[2]);
-    report.setEmergencyPhone(emergencyPhone.split(" ")[2]);
-
-    String header = doc.getElementsByClass("header").select("table").get(1).html();
-    report.setHeader(header);
-
-    String titlebar = doc.getElementsByClass("titlebar").select("table").html();
-    report.setTitlebar(titlebar);
-
-    String footer = doc.getElementsByClass("footer").html();
-    report.setFooter(footer);
-
-    return report;
+    report.setDob(dob.split(SPACE)[1]);
+    report.setGender(gender.split(SPACE)[1]);
+    report.setNhsNo(nhsNo.split(SPACE)[3] + nhsNo.split(SPACE)[4] + nhsNo.split(SPACE)[5]);
+    report.setLocalPatientId(localPatientId.split(SPACE)[3]);
+    report.setHomePhone(homePhone.split(SPACE)[2]);
+    report.setMobilePhone(mobilePhone.split(SPACE)[2]);
+    report.setEmergencyPhone(emergencyPhone.split(SPACE)[2]);
   }
 }
