@@ -152,7 +152,12 @@ public class MiddlewareSchedulerTask {
         // convert bytes[] to string
         String htmlString = new String(fileAttachment.getContent(), StandardCharsets.UTF_8);
         Document doc = Jsoup.parse(htmlString);
-        byte[] transform = new PDFTransformer().transform(doc.html());
+        
+        NHS111ReportData buildNhs111Report = reportBuilder.buildNhs111Report(doc);
+        stopwatch.finishStage("NHS 111 Report transformation");
+
+        String nhs111ReportString = htmlReportTransformer.transform(buildNhs111Report);
+        byte[] transform = pdfTransformer.transform(Jsoup.parse(nhs111ReportString).html());
         stopwatch.finishStage("pdf transformation");
         
         sendMDMMessage(transform);
