@@ -42,6 +42,7 @@ import microsoft.exchange.webservices.data.core.enumeration.property.BasePropert
 import microsoft.exchange.webservices.data.core.enumeration.property.WellKnownFolderName;
 import microsoft.exchange.webservices.data.core.enumeration.search.LogicalOperator;
 import microsoft.exchange.webservices.data.core.enumeration.service.ConflictResolutionMode;
+import microsoft.exchange.webservices.data.core.enumeration.service.DeleteMode;
 import microsoft.exchange.webservices.data.core.exception.service.remote.ServiceResponseException;
 import microsoft.exchange.webservices.data.core.service.item.EmailMessage;
 import microsoft.exchange.webservices.data.core.service.item.Item;
@@ -119,7 +120,7 @@ public class MiddlewareSchedulerTask {
             
             getFileContentFromAttachment(attachmentFromEmailMessage);
             
-            setMailsIsRead(emailMessage);
+            setMailsIsReadAndDelete(emailMessage);
             
           } catch (Exception e) {
             log.error("Exception", e);
@@ -190,9 +191,10 @@ public class MiddlewareSchedulerTask {
     stopwatch.finishStage("Sent an email with pdf attachement");
   }
 
-  private void setMailsIsRead(EmailMessage emailMessage) throws ServiceResponseException, Exception {
+  private void setMailsIsReadAndDelete(EmailMessage emailMessage) throws ServiceResponseException, Exception {
     emailMessage.setIsRead(true);
     emailMessage.update(ConflictResolutionMode.AlwaysOverwrite);
+    emailMessage.delete(DeleteMode.SoftDelete);
     stopwatch.finishStage("Making email unread after reading email");
   }
 
