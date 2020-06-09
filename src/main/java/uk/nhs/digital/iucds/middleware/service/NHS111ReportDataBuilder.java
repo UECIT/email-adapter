@@ -35,7 +35,8 @@ public class NHS111ReportDataBuilder {
 
   NHS111ReportData report;
 
-  public NHS111ReportDataBuilder() {}
+  public NHS111ReportDataBuilder() {
+  }
 
   public NHS111ReportData buildNhs111Report(Document doc) throws IOException {
     report = new NHS111ReportData();
