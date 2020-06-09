@@ -31,7 +31,7 @@ public class MDMT02MessageBuilder {
    * illustration
    */
 
-  public MDM_T02 Build(byte[] transform) throws HL7Exception, IOException {
+  public MDM_T02 build(byte[] transform) throws HL7Exception, IOException {
     String currentDateTimeString = getCurrentTimeStamp();
     _mdmt02Message = new MDM_T02();
     _mdmt02Message.initQuickstart("MDM", "T02", "P");
@@ -39,8 +39,8 @@ public class MDMT02MessageBuilder {
     createEvnSegment(currentDateTimeString);
     createPidSegment();
     createPv1Segment();
-    CreateTxaSegment();
-    CreateObxSegment(transform);
+    createTxaSegment();
+    createObxSegment(transform);
     return _mdmt02Message;
   }
 
@@ -91,15 +91,17 @@ public class MDMT02MessageBuilder {
     pv1.getAdmitDateTime().getTimeOfAnEvent().setValue(getCurrentTimeStamp());
   }
 
-  private void CreateTxaSegment() throws HL7Exception {
+  private void createTxaSegment() throws HL7Exception {
     TXA txa = _mdmt02Message.getTXA();
     txa.getTxa1_SetIDTXA().setValue("1");
     txa.getDocumentType().setValue("DS");
     txa.getTxa3_DocumentContentPresentation().setValue("ED");
     txa.getActivityDateTime().getTimeOfAnEvent().setValue(getCurrentTimeStamp());
-    txa.insertTxa5_PrimaryActivityProviderCodeName(0).getXcn2_FamilyName().getSurname().setValue("Foster");
+    txa.insertTxa5_PrimaryActivityProviderCodeName(0).getXcn2_FamilyName().getSurname()
+        .setValue("Foster");
     txa.insertTxa5_PrimaryActivityProviderCodeName(0).getXcn3_GivenName().setValue("John");
-    txa.insertTxa5_PrimaryActivityProviderCodeName(0).getXcn4_SecondAndFurtherGivenNamesOrInitialsThereof().setValue("Harry");
+    txa.insertTxa5_PrimaryActivityProviderCodeName(0)
+        .getXcn4_SecondAndFurtherGivenNamesOrInitialsThereof().setValue("Harry");
     txa.insertTxa5_PrimaryActivityProviderCodeName(0).getXcn6_PrefixEgDR().setValue("Dr");
     txa.getTxa6_OriginationDateTime().getTs1_TimeOfAnEvent().setValue(getCurrentTimeStamp());
     txa.getTxa7_TranscriptionDateTime().getTs1_TimeOfAnEvent().setValue(getCurrentTimeStamp());
@@ -108,21 +110,23 @@ public class MDMT02MessageBuilder {
     txa.getTxa16_UniqueDocumentFileName().setValue("hapi quick reference.pdf");
     txa.getTxa17_DocumentCompletionStatus().setValue("AU");
   }
-  
-  private void CreateObxSegment(byte[] transform) throws DataTypeException, IOException {
+
+  private void createObxSegment(byte[] transform) throws DataTypeException, IOException {
     OBX obx = _mdmt02Message.getOBX();
     obx.getObservationIdentifier().getIdentifier().setValue("Report");
     Varies value = obx.getObservationValue(0);
     ED encapsulatedData = new ED(_mdmt02Message);
     String base64EncodedStringOfPdfReport = new String(Base64.encodeBase64(transform));
-    encapsulatedData.getEd1_SourceApplication().getHd1_NamespaceID().setValue("Our Java Application");
-    encapsulatedData.getTypeOfData().setValue("AP"); //see HL7 table 0191: Type of referenced data
+    encapsulatedData.getEd1_SourceApplication().getHd1_NamespaceID()
+        .setValue("Our Java Application");
+    encapsulatedData.getTypeOfData().setValue("AP"); // see HL7 table 0191: Type of referenced data
     encapsulatedData.getDataSubtype().setValue("PDF");
     encapsulatedData.getEncoding().setValue("Base64");
-    
+
     encapsulatedData.getData().setValue(base64EncodedStringOfPdfReport);
     value.setData(encapsulatedData);
-}
+  }
+
   private String getCurrentTimeStamp() {
     return LocalDateTime.now().format(FOMATTER);
   }
