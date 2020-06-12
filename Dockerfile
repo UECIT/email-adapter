@@ -1,7 +1,20 @@
-FROM openjdk:11-slim
+FROM maven:3-jdk-11 as build
+WORKDIR /app
+
+ARG GITHUB_USER
+ARG GITHUB_TOKEN
+ENV GITHUB_USER=$GITHUB_USER GITHUB_TOKEN=$GITHUB_TOKEN
+COPY pom.xml settings.xml /app/
+COPY m2cache m2cache
+COPY src src
+RUN mvn -B package -DskipTests -Dmaven.repo.local=m2cache --settings settings.xml
+
+FROM openjdk:11-jre-slim
+WORKDIR /app
 VOLUME /tmp
-ARG DEPENDENCY=target/dependency
-COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY ${DEPENDENCY}/META-INF /app/META-INF
-COPY ${DEPENDENCY}/BOOT-INF/classes /app
-ENTRYPOINT ["java","-cp","app:app/lib/*","uk.nhs.digital.iucds.middleware.MiddlewareApplication"]
+COPY run.sh /app
+RUN chmod +x run.sh
+ENTRYPOINT [ "/app/run.sh" ]
+EXPOSE 8083
+
+COPY --from=build /app/target/iucds-middleware-0.1.0.jar /app
