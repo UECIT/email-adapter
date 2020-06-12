@@ -30,6 +30,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MimeTypeUtils;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
 import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest;
@@ -71,7 +72,8 @@ public class MiddlewareSchedulerTask {
 
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
-  private AWSSimpleSystemsManagement ssm = AWSSimpleSystemsManagementClientBuilder.defaultClient();
+  private AWSSimpleSystemsManagement ssm =
+      AWSSimpleSystemsManagementClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
   private HapiSendMDMClient client;
   private StagedStopwatch stopwatch = StagedStopwatch.start();
   private NHS111ReportDataBuilder reportBuilder;
@@ -114,13 +116,13 @@ public class MiddlewareSchedulerTask {
         for (Object item : findResults.getItems()) {
           try {
             EmailMessage emailMessage = (EmailMessage) item;
-            
+
             Attachment attachmentFromEmailMessage = getAttachmentFromEmailMessage(emailMessage);
-            
+
             getFileContentFromAttachment(attachmentFromEmailMessage);
-            
+
             setMailsIsRead(emailMessage);
-            
+
           } catch (Exception e) {
             log.error("Exception", e);
           }
@@ -135,8 +137,8 @@ public class MiddlewareSchedulerTask {
   }
 
   private Attachment getAttachmentFromEmailMessage(EmailMessage emailMessage) throws Exception {
-    emailMessage.load(
-        new PropertySet(BasePropertySet.FirstClassProperties, ItemSchema.MimeContent));
+    emailMessage
+        .load(new PropertySet(BasePropertySet.FirstClassProperties, ItemSchema.MimeContent));
     log.info("attachment count: {} ", emailMessage.getAttachments().getCount());
     Attachment attachment = emailMessage.getAttachments().getItems().get(0);
     stopwatch.finishStage("Getting html attchement from email");
@@ -152,18 +154,18 @@ public class MiddlewareSchedulerTask {
         // convert bytes[] to string
         String htmlString = new String(fileAttachment.getContent(), StandardCharsets.UTF_8);
         Document doc = Jsoup.parse(htmlString);
-        
+
         NHS111ReportData buildNhs111Report = reportBuilder.buildNhs111Report(doc);
         stopwatch.finishStage("NHS 111 Report transformation");
 
         String nhs111ReportString = htmlReportTransformer.transform(buildNhs111Report);
         byte[] transform = pdfTransformer.transform(Jsoup.parse(nhs111ReportString).html());
         stopwatch.finishStage("pdf transformation");
-        
+
         sendMDMMessage(transform);
 
         createEmailMeassageAndSend(doc, transform);
-        
+
       }
 
     } else if (attachment instanceof ItemAttachment) {
@@ -190,7 +192,8 @@ public class MiddlewareSchedulerTask {
     stopwatch.finishStage("Sent an email with pdf attachement");
   }
 
-  private void setMailsIsRead(EmailMessage emailMessage) throws ServiceResponseException, Exception {
+  private void setMailsIsRead(EmailMessage emailMessage)
+      throws ServiceResponseException, Exception {
     emailMessage.setIsRead(true);
     emailMessage.update(ConflictResolutionMode.AlwaysOverwrite);
     stopwatch.finishStage("Making email unread after reading email");
