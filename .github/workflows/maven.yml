@@ -78,7 +78,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: docker.pkg.github.com
-        repository: uecit/iucds-middleware/iucds-middleware
+        repository: uecit/email-adapter/iucds-middleware
         tag_with_ref: true
         tag_with_sha: true
         build_args: GITHUB_USER=${{ github.actor }},GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
