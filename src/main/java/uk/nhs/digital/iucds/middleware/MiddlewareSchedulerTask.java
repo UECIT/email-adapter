@@ -41,9 +41,6 @@ import microsoft.exchange.webservices.data.core.enumeration.misc.ExchangeVersion
 import microsoft.exchange.webservices.data.core.enumeration.property.BasePropertySet;
 import microsoft.exchange.webservices.data.core.enumeration.property.WellKnownFolderName;
 import microsoft.exchange.webservices.data.core.enumeration.search.LogicalOperator;
-import microsoft.exchange.webservices.data.core.enumeration.service.ConflictResolutionMode;
-import microsoft.exchange.webservices.data.core.enumeration.service.DeleteMode;
-import microsoft.exchange.webservices.data.core.exception.service.remote.ServiceResponseException;
 import microsoft.exchange.webservices.data.core.service.item.EmailMessage;
 import microsoft.exchange.webservices.data.core.service.item.Item;
 import microsoft.exchange.webservices.data.core.service.schema.EmailMessageSchema;
@@ -62,6 +59,7 @@ import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
 import uk.nhs.digital.iucds.middleware.service.NHS111ReportDataBuilder;
 import uk.nhs.digital.iucds.middleware.transformer.HTMLReportTransformer;
 import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
+import uk.nhs.digital.iucds.middleware.utility.DeleteUtility;
 import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 
 @Slf4j
@@ -74,7 +72,8 @@ public class MiddlewareSchedulerTask {
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
   private AWSSimpleSystemsManagement ssm = AWSSimpleSystemsManagementClientBuilder.defaultClient();
   private HapiSendMDMClient client;
-  private StagedStopwatch stopwatch = StagedStopwatch.start();
+  private StagedStopwatch stopwatch = StagedStopwatch.start(); 
+  private DeleteUtility deleteUtility = new DeleteUtility();
   private NHS111ReportDataBuilder reportBuilder;
   private HTMLReportTransformer htmlReportTransformer;
   private PDFTransformer pdfTransformer;
@@ -118,9 +117,11 @@ public class MiddlewareSchedulerTask {
             
             Attachment attachmentFromEmailMessage = getAttachmentFromEmailMessage(emailMessage);
             
-            getFileContentFromAttachment(attachmentFromEmailMessage);
+            if (attachmentFromEmailMessage != null) {
+              getFileContentFromAttachment(attachmentFromEmailMessage);
+            }
             
-            setMailsIsReadAndDelete(emailMessage);
+            deleteUtility.setMailsIsReadAndDelete(emailMessage);
             
           } catch (Exception e) {
             log.error("Exception", e);
@@ -139,8 +140,12 @@ public class MiddlewareSchedulerTask {
     emailMessage.load(
         new PropertySet(BasePropertySet.FirstClassProperties, ItemSchema.MimeContent));
     log.info("attachment count: {} ", emailMessage.getAttachments().getCount());
-    Attachment attachment = emailMessage.getAttachments().getItems().get(0);
-    stopwatch.finishStage("Getting html attchement from email");
+    Attachment attachment = null;
+    if (emailMessage.getAttachments().getItems().size() != 0) {
+      attachment = emailMessage.getAttachments().getItems().get(0);
+      stopwatch.finishStage("Getting html attchement from email");
+      return attachment;
+    }
     return attachment;
   }
 
@@ -191,16 +196,9 @@ public class MiddlewareSchedulerTask {
     stopwatch.finishStage("Sent an email with pdf attachement");
   }
 
-  private void setMailsIsReadAndDelete(EmailMessage emailMessage) throws ServiceResponseException, Exception {
-    emailMessage.setIsRead(true);
-    emailMessage.update(ConflictResolutionMode.AlwaysOverwrite);
-    emailMessage.delete(DeleteMode.SoftDelete);
-    stopwatch.finishStage("Making email unread after reading email");
-  }
-
   private void sendMDMMessage(byte[] transform) {
     client.sendMDM(transform);
-    stopwatch.finishStage("Sent MDM");
+    stopwatch.finishStage("Sending MDM message to HIE API");
   }
 
   private FindItemsResults<Item> getFindItemsResults() throws Exception {

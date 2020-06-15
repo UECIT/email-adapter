@@ -52,8 +52,11 @@ public class MiddlewareApplicationTest {
   private static final String HTML_FILE = "src/test/resources/input.html";
 
   @MockBean
-  private MiddlewareSchedulerTask tasks;
-
+  private MiddlewareSchedulerTask schedulerTask;
+  
+  @MockBean
+  private MiddlewareDeleteTask deleteTask;
+  
   @Mock
   private ExchangeService service;
 
@@ -146,7 +149,7 @@ public class MiddlewareApplicationTest {
     getSut().sendMails();
 
     // Basic integration test that shows the context starts up properly
-    assertThat(tasks).isNotNull();
+    assertThat(schedulerTask).isNotNull();
     Mockito.verify(service, Mockito.times(2)).findItems(Mockito.any(WellKnownFolderName.class),
         Mockito.any(SearchFilterCollection.class), Mockito.any(ItemView.class));
   }
