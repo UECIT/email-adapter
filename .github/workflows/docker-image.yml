@@ -19,15 +19,9 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     
-    - uses: actions/checkout@v2
-    - name: Build the Docker image
-      env:
-        GITHUB_USER: UECIT
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
+    - run: |
         docker pull nextgenhealthcare/connect
-        docker tag nextgenhealthcare/connect:latest docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect
-        docker push docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect
-        
+        docker tag nextgenhealthcare/connect:latest docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect:latest
+        docker push docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect:latest     
         
      
