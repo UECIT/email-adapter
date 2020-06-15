@@ -25,6 +25,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -68,25 +69,32 @@ import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 @Component
 public class MiddlewareSchedulerTask {
 
+  @Autowired
+  private StagedStopwatch stopwatch; 
+  
+  @Autowired
+  private DeleteUtility deleteUtility;
+  
+  @Autowired
+  private NHS111ReportDataBuilder reportBuilder;
+  
+  @Autowired
+  private HTMLReportTransformer htmlReportTransformer;
+  
+  @Autowired
+  private PDFTransformer pdfTransformer;
+  
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
   private AWSSimpleSystemsManagement ssm = AWSSimpleSystemsManagementClientBuilder.defaultClient();
   private HapiSendMDMClient client;
-  private StagedStopwatch stopwatch = StagedStopwatch.start(); 
-  private DeleteUtility deleteUtility = new DeleteUtility();
-  private NHS111ReportDataBuilder reportBuilder;
-  private HTMLReportTransformer htmlReportTransformer;
-  private PDFTransformer pdfTransformer;
-
+  
   public MiddlewareSchedulerTask() throws Exception {
     ExchangeCredentials credentials =
         new WebCredentials(getParameter("username"), getParameter("password"));
     service.setCredentials(credentials);
     service.autodiscoverUrl(getParameter("username"));
     client = new HapiSendMDMClient(getParameter("TCP_HOST"), getParameter("PORT_NUMBER"));
-    reportBuilder = new NHS111ReportDataBuilder();
-    htmlReportTransformer = new HTMLReportTransformer();
-    pdfTransformer = new PDFTransformer();
   }
 
   public MiddlewareSchedulerTask(ExchangeService service, AWSSimpleSystemsManagement ssm,

@@ -16,6 +16,7 @@ package uk.nhs.digital.iucds.middleware;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -47,11 +48,15 @@ import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 @Component
 public class MiddlewareDeleteTask {
 
+  @Autowired
+  private StagedStopwatch stopwatch; 
+  
+  @Autowired
+  private DeleteUtility deleteUtility;
+  
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
   private AWSSimpleSystemsManagement ssm = AWSSimpleSystemsManagementClientBuilder.defaultClient();
-  private StagedStopwatch stopwatch = StagedStopwatch.start();
-  private DeleteUtility deleteUtility = new DeleteUtility();
 
   public MiddlewareDeleteTask() throws Exception {
     ExchangeCredentials credentials =
