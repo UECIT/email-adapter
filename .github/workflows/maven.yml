@@ -100,16 +100,5 @@ jobs:
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         application_name: IUCDS-Middleware
         environment_name: IUCDS-Middleware-Environment
-        region: us-west-2
+        region: eu-west-2
         deployment_package: eb-deploy.zip
-        
-  invoke-deployment:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master')
-    needs: [publish-app]
-    steps:
-      - name: Invoke deployment hook
-        uses: distributhor/workflow-webhook@v1
-        env:
-          webhook_url: ${{ secrets.WEBHOOK_URL }}
-          webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
