@@ -15,6 +15,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker image
+      env:
+        GITHUB_USER: UECIT
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         docker pull nextgenhealthcare/connect
         docker tag nextgenhealthcare/connect:latest docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect:latest
