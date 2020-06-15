@@ -26,8 +26,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         docker pull nextgenhealthcare/connect
-        docker tag nextgenhealthcare/connect:latest docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect:latest
-        docker push docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect:latest
+        docker tag nextgenhealthcare/connect:latest docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect
+        docker push docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect
         
         
      
