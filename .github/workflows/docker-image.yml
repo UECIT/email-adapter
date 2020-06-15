@@ -1,0 +1,22 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: |
+        docker pull nextgenhealthcare/connect
+        docker tag nextgenhealthcare/connect:latest docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect:latest
+        docker push docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect:latest
+        
