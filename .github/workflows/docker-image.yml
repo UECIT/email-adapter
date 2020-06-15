@@ -21,6 +21,7 @@ jobs:
     
     - run: |
         docker pull nextgenhealthcare/connect
-        docker push docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect:latest     
+        docker tag nextgenhealthcare/connect docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect
+        docker push docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare/connect     
         
      
