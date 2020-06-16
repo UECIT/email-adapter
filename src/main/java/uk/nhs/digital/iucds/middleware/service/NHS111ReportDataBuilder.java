@@ -6,10 +6,12 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import uk.nhs.digital.iucds.middleware.NHS111ReportData;
 
 @Slf4j
+@Data
 @Component
 public class NHS111ReportDataBuilder {
 
@@ -34,9 +36,6 @@ public class NHS111ReportDataBuilder {
   private static final String GP_PRACTICE = "GP Practice";
 
   NHS111ReportData report;
-
-  public NHS111ReportDataBuilder() {
-  }
 
   public NHS111ReportData buildNhs111Report(Document doc) throws IOException {
     report = new NHS111ReportData();

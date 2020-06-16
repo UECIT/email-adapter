@@ -1,16 +1,20 @@
 package uk.nhs.digital.iucds.middleware.transformer;
 
+import java.io.IOException;
+import org.springframework.stereotype.Component;
 import com.amazonaws.util.StringInputStream;
 import com.itextpdf.html2pdf.ConverterProperties;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.html2pdf.resolver.font.DefaultFontProvider;
 import com.itextpdf.io.source.ByteArrayOutputStream;
 import com.itextpdf.layout.font.FontProvider;
-import java.io.IOException;
+import lombok.Data;
 
 /**
  * Converts HTML into a PDF
  */
+@Data
+@Component
 public class PDFTransformer {
 
   private static final String FONTS = "src/main/resources/fonts/calibri/";
