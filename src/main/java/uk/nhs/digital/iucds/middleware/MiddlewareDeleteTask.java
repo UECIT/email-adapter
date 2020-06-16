@@ -21,6 +21,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
 import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest;
@@ -49,14 +50,15 @@ import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 public class MiddlewareDeleteTask {
 
   @Autowired
-  private StagedStopwatch stopwatch; 
-  
+  private StagedStopwatch stopwatch;
+
   @Autowired
   private DeleteUtility deleteUtility;
-  
+
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
-  private AWSSimpleSystemsManagement ssm = AWSSimpleSystemsManagementClientBuilder.defaultClient();
+  private AWSSimpleSystemsManagement ssm =
+      AWSSimpleSystemsManagementClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
 
   public MiddlewareDeleteTask() throws Exception {
     ExchangeCredentials credentials =
@@ -84,9 +86,9 @@ public class MiddlewareDeleteTask {
         for (Object item : findResults.getItems()) {
           try {
             EmailMessage emailMessage = (EmailMessage) item;
-            
+
             deleteUtility.setMailsIsReadAndDelete(emailMessage);
-            
+
           } catch (Exception e) {
             log.error("Exception", e);
           }
