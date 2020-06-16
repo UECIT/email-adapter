@@ -2,9 +2,13 @@ package uk.nhs.digital.iucds.middleware.utility;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import org.springframework.stereotype.Component;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Data
+@Component
 public class StagedStopwatch {
 
   private Instant stageStart = Instant.now();

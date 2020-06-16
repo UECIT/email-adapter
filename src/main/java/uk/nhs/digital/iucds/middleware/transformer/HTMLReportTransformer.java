@@ -1,13 +1,17 @@
 package uk.nhs.digital.iucds.middleware.transformer;
 
+import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import lombok.Data;
 import uk.nhs.digital.iucds.middleware.NHS111ReportData;
 
 /**
  * Converts an {@link EncounterReport} into an HTML report document
  */
+@Data
+@Component
 public class HTMLReportTransformer {
 
   private final TemplateEngine templateEngine;
