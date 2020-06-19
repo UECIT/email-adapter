@@ -88,7 +88,7 @@ public class MiddlewareSchedulerTask {
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
   private AWSSimpleSystemsManagement ssm =
-      AWSSimpleSystemsManagementClientBuilder.standard().withRegion(Regions.US_WEST_2).build();
+      AWSSimpleSystemsManagementClientBuilder.standard().withRegion(Regions.EU_WEST_2).build();
   private HapiSendMDMClient client;
   
   public MiddlewareSchedulerTask() throws Exception {
