@@ -73,7 +73,6 @@ jobs:
       run: mvn -B -Dmaven.repo.local=m2cache dependency:go-offline dependency:resolve-plugins --file pom.xml --settings settings.xml
 
     - name: Push IUCDS Middleware to GitHub Packages
-      id: build-image
       uses: docker/build-push-action@v1
       with:
         username: ${{ github.actor }}
@@ -89,12 +88,12 @@ jobs:
       with:
         task-definition: task-definition.json
         container-name: iucds-middleware-container
-        image: ${{ steps.build-image.outputs.image }}
+        image: docker.pkg.github.com/uecit/email-adapter/iucds-middleware:${{ github.sha }}
 
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
-        service: dc-dojo-service-github
-        cluster: dcdojo-cluster
+        service: iucds-middleware-service
+        cluster: iucds-middleware-cluster
         wait-for-service-stability: true
