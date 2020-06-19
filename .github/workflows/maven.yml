@@ -81,19 +81,3 @@ jobs:
         repository: uecit/email-adapter/iucds-middleware
         tags: latest
         build_args: GITHUB_USER=${{ github.actor }},GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-
-    - name: Fill in the new image ID in the Amazon ECS task definition
-      id: task-def
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
-      with:
-        task-definition: task-definition.json
-        container-name: iucds-middleware-container
-        image: docker.pkg.github.com/uecit/email-adapter/iucds-middleware:latest
-
-    - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: ${{ steps.task-def.outputs.task-definition }}
-        service: iucds-middleware-service
-        cluster: iucds-middleware-cluster
-        wait-for-service-stability: true
