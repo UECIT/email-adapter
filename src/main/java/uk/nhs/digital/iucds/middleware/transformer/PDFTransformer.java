@@ -20,12 +20,12 @@ import lombok.Data;
 public class PDFTransformer {
 
   public static final String[] FONTS = {
-      "./src/main/resources/fonts/calibri/Calibri-Regular.ttf",
-      "./src/main/resources/fonts/calibri/Calibri-Light-Italic.ttf",
-      "./src/main/resources/fonts/calibri/Calibri-Light.ttf",
-      "./src/main/resources/fonts/calibri/Calibri-Italic.ttf",
-      "./src/main/resources/fonts/calibri/Calibri-Bold-Italic.ttf",
-      "./src/main/resources/fonts/calibri/Calibri-Bold.TTF"
+      "src/main/resources/fonts/calibri/Calibri-Regular.ttf",
+      "src/main/resources/fonts/calibri/Calibri-Light-Italic.ttf",
+      "src/main/resources/fonts/calibri/Calibri-Light.ttf",
+      "src/main/resources/fonts/calibri/Calibri-Italic.ttf",
+      "src/main/resources/fonts/calibri/Calibri-Bold-Italic.ttf",
+      "src/main/resources/fonts/calibri/Calibri-Bold.TTF"
   };
   
   public byte[] transform(String html) throws IOException {
