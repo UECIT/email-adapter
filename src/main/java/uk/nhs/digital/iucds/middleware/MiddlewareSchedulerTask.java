@@ -197,7 +197,11 @@ public class MiddlewareSchedulerTask {
     EmailMessage message = new EmailMessage(service);
     message.setSubject(getParameter("EMS_REPORT_SUBJECT"));
     message.setBody(new MessageBody(getParameter("EMS_REPORT_BODY")));
-    message.getToRecipients().add(getParameter("EMS_REPORT_RECIPIENT"));
+    String recipientsString = getParameter("EMS_REPORT_RECIPIENT");
+    String[] recipients = recipientsString.split(",");
+    for (String recipient : recipients) {
+      message.getToRecipients().add(recipient); 
+    }
     FileAttachment addFileAttachment =
         message.getAttachments().addFileAttachment(createFileName(doc), transform);
     addFileAttachment.setContentType("application/pdf");
