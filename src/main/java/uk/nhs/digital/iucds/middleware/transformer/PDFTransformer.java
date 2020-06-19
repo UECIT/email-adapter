@@ -34,7 +34,8 @@ public class PDFTransformer {
     ConverterProperties properties = new ConverterProperties();
     FontProvider fontProvider = new DefaultFontProvider(false, false, false);
     for (String font : FONTS) {
-        FontProgram fontProgram = FontProgramFactory.createFont(font);
+        String fontName = PDFTransformer.class.getResource(font).toString();
+        FontProgram fontProgram = FontProgramFactory.createFont(fontName);
         fontProvider.addFont(fontProgram);
     }
     properties.setFontProvider(fontProvider);
