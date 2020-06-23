@@ -14,17 +14,13 @@ import uk.nhs.digital.iucds.middleware.NHS111ReportData;
 @Component
 public class HTMLReportTransformer {
 
-  private final TemplateEngine templateEngine;
-
-  public HTMLReportTransformer() {
-    templateEngine = new TemplateEngine();
-    templateEngine.addTemplateResolver(new ClassLoaderTemplateResolver());
-  }
+  private TemplateEngine templateEngine;
 
   public String transform(NHS111ReportData buildNhs111Report) {
+    templateEngine = new TemplateEngine();
+    templateEngine.addTemplateResolver(new ClassLoaderTemplateResolver());
     Context context = new Context();
-    NHS111ReportData NHS111Report = buildNhs111Report;
-    context.setVariable("report", NHS111Report);
+    context.setVariable("report", buildNhs111Report);
     return templateEngine.process("/templates/NHS111ReportTemplate.html", context);
   }
 }
