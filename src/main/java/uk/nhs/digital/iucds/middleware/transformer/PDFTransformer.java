@@ -26,7 +26,7 @@ public class PDFTransformer {
     FontProvider fontProvider = new DefaultFontProvider();
     fontProvider.addDirectory(FONTS);
     properties.setFontProvider(fontProvider);
-    HtmlConverter.convertToPdf(new StringInputStream(html), outputStream);
+    HtmlConverter.convertToPdf(new StringInputStream(html), outputStream, properties);
 
     return outputStream.toByteArray();
   }
