@@ -1,0 +1,27 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ master, develop ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: azure/docker-login@v1
+      with:
+        login-server: docker.pkg.github.com
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - run: |
+        docker pull nextgenhealthcare/connect
+        docker tag nextgenhealthcare/connect:latest docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare_connect:latest
+        docker push docker.pkg.github.com/uecit/email-adapter/nextgenhealthcare_connect:latest     
+        
+     

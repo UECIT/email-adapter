@@ -31,6 +31,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MimeTypeUtils;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
 import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest;
@@ -86,7 +87,8 @@ public class MiddlewareSchedulerTask {
   
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
-  private AWSSimpleSystemsManagement ssm = AWSSimpleSystemsManagementClientBuilder.defaultClient();
+  private AWSSimpleSystemsManagement ssm =
+      AWSSimpleSystemsManagementClientBuilder.standard().withRegion(Regions.EU_WEST_2).build();
   private HapiSendMDMClient client;
   
   public MiddlewareSchedulerTask() throws Exception {
@@ -122,7 +124,7 @@ public class MiddlewareSchedulerTask {
         for (Object item : findResults.getItems()) {
           try {
             EmailMessage emailMessage = (EmailMessage) item;
-            
+
             Attachment attachmentFromEmailMessage = getAttachmentFromEmailMessage(emailMessage);
             
             if (attachmentFromEmailMessage != null) {
@@ -145,8 +147,8 @@ public class MiddlewareSchedulerTask {
   }
 
   private Attachment getAttachmentFromEmailMessage(EmailMessage emailMessage) throws Exception {
-    emailMessage.load(
-        new PropertySet(BasePropertySet.FirstClassProperties, ItemSchema.MimeContent));
+    emailMessage
+        .load(new PropertySet(BasePropertySet.FirstClassProperties, ItemSchema.MimeContent));
     log.info("attachment count: {} ", emailMessage.getAttachments().getCount());
     Attachment attachment = null;
     if (emailMessage.getAttachments().getItems().size() != 0) {
@@ -166,18 +168,18 @@ public class MiddlewareSchedulerTask {
         // convert bytes[] to string
         String htmlString = new String(fileAttachment.getContent(), StandardCharsets.UTF_8);
         Document doc = Jsoup.parse(htmlString);
-        
+
         NHS111ReportData buildNhs111Report = reportBuilder.buildNhs111Report(doc);
         stopwatch.finishStage("NHS 111 Report transformation");
 
         String nhs111ReportString = htmlReportTransformer.transform(buildNhs111Report);
         byte[] transform = pdfTransformer.transform(Jsoup.parse(nhs111ReportString).html());
         stopwatch.finishStage("pdf transformation");
-        
+
         sendMDMMessage(transform);
 
         createEmailMeassageAndSend(doc, transform);
-        
+
       }
 
     } else if (attachment instanceof ItemAttachment) {
@@ -195,7 +197,11 @@ public class MiddlewareSchedulerTask {
     EmailMessage message = new EmailMessage(service);
     message.setSubject(getParameter("EMS_REPORT_SUBJECT"));
     message.setBody(new MessageBody(getParameter("EMS_REPORT_BODY")));
-    message.getToRecipients().add(getParameter("EMS_REPORT_RECIPIENT"));
+    String recipientsString = getParameter("EMS_REPORT_RECIPIENT");
+    String[] recipients = recipientsString.split(",");
+    for (String recipient : recipients) {
+      message.getToRecipients().add(recipient); 
+    }
     FileAttachment addFileAttachment =
         message.getAttachments().addFileAttachment(createFileName(doc), transform);
     addFileAttachment.setContentType("application/pdf");
