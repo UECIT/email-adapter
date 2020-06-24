@@ -6,13 +6,18 @@ import com.amazonaws.util.StringInputStream;
 import com.itextpdf.html2pdf.ConverterProperties;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.html2pdf.resolver.font.DefaultFontProvider;
+import com.itextpdf.io.font.FontProgram;
+import com.itextpdf.io.font.FontProgramFactory;
+import com.itextpdf.io.font.Type1Font;
 import com.itextpdf.io.source.ByteArrayOutputStream;
 import com.itextpdf.layout.font.FontProvider;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Converts HTML into a PDF
  */
+@Slf4j
 @Data
 @Component
 public class PDFTransformer {
@@ -23,9 +28,10 @@ public class PDFTransformer {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
     ConverterProperties properties = new ConverterProperties();
-    FontProvider fontProvider = new DefaultFontProvider();
+    FontProvider fontProvider = new DefaultFontProvider(false, true, false);
     fontProvider.addDirectory(FONTS);
     properties.setFontProvider(fontProvider);
+    log.info("fontProvider {} ", fontProvider.getFontSet().getFonts());
     HtmlConverter.convertToPdf(new StringInputStream(html), outputStream, properties);
 
     return outputStream.toByteArray();
