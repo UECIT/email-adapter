@@ -242,7 +242,11 @@ public class MiddlewareSchedulerTask {
 
   public String getParameter(String parameterName) {
     GetParameterRequest request = new GetParameterRequest();
-    request.setName(IUCDS + "-" + iucdsEnvironment + "-" + parameterName);
+    if (parameterName.equals(IUCDS_ENV)) {
+      request.setName(parameterName);
+    } else {
+      request.setName(IUCDS + "-" + iucdsEnvironment + "-" + parameterName);
+    }
     request.setWithDecryption(true);
     return ssm.getParameter(request).getParameter().getValue();
   }
