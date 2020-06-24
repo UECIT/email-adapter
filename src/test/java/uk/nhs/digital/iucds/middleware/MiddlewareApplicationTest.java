@@ -27,9 +27,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.util.MimeTypeUtils;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
-import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest;
-import com.amazonaws.services.simplesystemsmanagement.model.GetParameterResult;
-import com.amazonaws.services.simplesystemsmanagement.model.Parameter;
 import microsoft.exchange.webservices.data.core.ExchangeService;
 import microsoft.exchange.webservices.data.core.enumeration.misc.ExchangeVersion;
 import microsoft.exchange.webservices.data.core.enumeration.property.WellKnownFolderName;
@@ -45,6 +42,7 @@ import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
 import uk.nhs.digital.iucds.middleware.service.NHS111ReportDataBuilder;
 import uk.nhs.digital.iucds.middleware.transformer.HTMLReportTransformer;
 import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
+import uk.nhs.digital.iucds.middleware.utility.SsmUtility;
 
 @SpringBootTest
 public class MiddlewareApplicationTest {
@@ -56,6 +54,9 @@ public class MiddlewareApplicationTest {
   
   @MockBean
   private MiddlewareDeleteTask deleteTask;
+  
+  @Mock
+  private SsmUtility ssmUtility;
   
   @Mock
   private ExchangeService service;
@@ -82,22 +83,7 @@ public class MiddlewareApplicationTest {
   private FileAttachment attachment;
 
   @Spy
-  private GetParameterResult result;
-
-  @Spy
-  private Parameter param;
-
-  @Spy
   private HapiSendMDMClient client;
-
-  @Spy
-  private Parameter param1;
-
-  @Spy
-  private GetParameterResult result1;
-
-  @Spy
-  private Parameter param2;
 
   @Mock
   private NHS111ReportDataBuilder reportBuilder;
@@ -109,26 +95,16 @@ public class MiddlewareApplicationTest {
   private PDFTransformer pdfTransformer;
 
   private MiddlewareSchedulerTask getSut() throws Exception {
-    return new MiddlewareSchedulerTask(service, ssm, client, reportBuilder, htmlReportTransformer,
-        pdfTransformer);
+    return new MiddlewareSchedulerTask(service, client, reportBuilder, htmlReportTransformer,
+        pdfTransformer, ssmUtility);
   }
 
   @Test
   public void contextLoads() throws Exception {
     items.getItems().add(message);
     item.add(message);
-    Mockito.when(ssm.getParameter(Mockito.any(GetParameterRequest.class))).thenReturn(result);
-    Mockito.when(result.getParameter()).thenReturn(param);
-    Mockito.when(param.getValue()).thenReturn("test");
-    Mockito.when(ssm.getParameter(new GetParameterRequest().withName("EMAIL_ITEM_VIEW")))
-        .thenReturn(result);
-    Mockito.when(result.getParameter()).thenReturn(param1);
-    Mockito.when(param1.getValue()).thenReturn("100");
-    Mockito.when(ssm.getParameter(new GetParameterRequest().withName("PORT_NUMBER")))
-        .thenReturn(result);
-    Mockito.when(result.getParameter()).thenReturn(param2);
-    Mockito.when(param2.getValue()).thenReturn("4646");
-
+    Mockito.when(ssmUtility.getIucdsEnvironment(Mockito.anyString())).thenReturn("dev");
+    Mockito.when(ssmUtility.getParameter(Mockito.anyString())).thenReturn("100");
     Mockito
         .when(service.findItems(Mockito.any(WellKnownFolderName.class),
             Mockito.any(SearchFilterCollection.class), Mockito.any(ItemView.class)))

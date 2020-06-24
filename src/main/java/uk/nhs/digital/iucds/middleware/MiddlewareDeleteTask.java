@@ -21,10 +21,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
-import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import microsoft.exchange.webservices.data.core.ExchangeService;
@@ -41,6 +37,7 @@ import microsoft.exchange.webservices.data.search.ItemView;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter.SearchFilterCollection;
 import uk.nhs.digital.iucds.middleware.utility.DeleteUtility;
+import uk.nhs.digital.iucds.middleware.utility.SsmUtility;
 import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 
 @Slf4j
@@ -49,7 +46,6 @@ import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 @Component
 public class MiddlewareDeleteTask {
 
-  private static final String IUCDS = "iucds";
   private static final String EMAIL_ITEM_VIEW = "ems-email-item-view";
   private static final String EMS_REPORT_SENDER = "ems-email-sender";
   private static final String EMAIL_USERNAME = "ems-email-username";
@@ -63,23 +59,24 @@ public class MiddlewareDeleteTask {
   @Autowired
   private DeleteUtility deleteUtility;
 
+  @Autowired
+  private SsmUtility ssmUtility;
+  
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
-  private AWSSimpleSystemsManagement ssm =
-      AWSSimpleSystemsManagementClientBuilder.standard().withRegion(Regions.EU_WEST_2).build();
 
   public MiddlewareDeleteTask() throws Exception {
-    iucdsEnvironment = getParameter(IUCDS_ENV);
+    iucdsEnvironment = ssmUtility.getIucdsEnvironment(IUCDS_ENV);
     log.info("IUCDS middleware environment : {} ", iucdsEnvironment);
     ExchangeCredentials credentials =
-        new WebCredentials(getParameter(EMAIL_USERNAME), getParameter(EMAIL_PASSWORD));
+        new WebCredentials(ssmUtility.getParameter(EMAIL_USERNAME), ssmUtility.getParameter(EMAIL_PASSWORD));
     service.setCredentials(credentials);
-    service.autodiscoverUrl(getParameter(EMAIL_USERNAME));
+    service.autodiscoverUrl(ssmUtility.getParameter(EMAIL_USERNAME));
   }
 
-  public MiddlewareDeleteTask(ExchangeService service, AWSSimpleSystemsManagement ssm) {
+  public MiddlewareDeleteTask(ExchangeService service, SsmUtility ssmUtility) {
     this.service = service;
-    this.ssm = ssm;
+    this.ssmUtility = ssmUtility;
   }
 
   @Async
@@ -113,23 +110,12 @@ public class MiddlewareDeleteTask {
   }
 
   private FindItemsResults<Item> getFindItemsResults() throws Exception {
-    ItemView view = new ItemView(Integer.parseInt(getParameter(EMAIL_ITEM_VIEW)));
+    ItemView view = new ItemView(Integer.parseInt(ssmUtility.getParameter(EMAIL_ITEM_VIEW)));
     SearchFilterCollection searchFilterCollection =
         new SearchFilter.SearchFilterCollection(LogicalOperator.And);
     searchFilterCollection.add(
-        new SearchFilter.IsNotEqualTo(EmailMessageSchema.From, getParameter(EMS_REPORT_SENDER)));
+        new SearchFilter.IsNotEqualTo(EmailMessageSchema.From, ssmUtility.getParameter(EMS_REPORT_SENDER)));
     searchFilterCollection.add(new SearchFilter.IsEqualTo(EmailMessageSchema.IsRead, false));
     return service.findItems(WellKnownFolderName.Inbox, searchFilterCollection, view);
-  }
-
-  public String getParameter(String parameterName) {
-    GetParameterRequest request = new GetParameterRequest();
-    if (parameterName.equals(IUCDS_ENV)) {
-      request.setName(parameterName);
-    } else {
-      request.setName(IUCDS + "-" + iucdsEnvironment + "-" + parameterName);
-    }
-    request.setWithDecryption(true);
-    return ssm.getParameter(request).getParameter().getValue();
   }
 }

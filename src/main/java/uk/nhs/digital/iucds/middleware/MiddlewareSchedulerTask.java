@@ -31,10 +31,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MimeTypeUtils;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
-import com.amazonaws.services.simplesystemsmanagement.model.GetParameterRequest;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import microsoft.exchange.webservices.data.core.ExchangeService;
@@ -62,6 +58,7 @@ import uk.nhs.digital.iucds.middleware.service.NHS111ReportDataBuilder;
 import uk.nhs.digital.iucds.middleware.transformer.HTMLReportTransformer;
 import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
 import uk.nhs.digital.iucds.middleware.utility.DeleteUtility;
+import uk.nhs.digital.iucds.middleware.utility.SsmUtility;
 import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 
 @Slf4j
@@ -70,7 +67,6 @@ import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 @Component
 public class MiddlewareSchedulerTask {
 
-  private static final String IUCDS = "iucds";
   private static final String EMS_REPORT_SUBJECT = "ems-email-subject";
   private static final String EMS_REPORT_BODY = "ems-email-body";
   private static final String EMS_REPORT_RECIPIENT = "ems-email-recipients";
@@ -85,8 +81,6 @@ public class MiddlewareSchedulerTask {
   
   private static final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
-  private AWSSimpleSystemsManagement ssm =
-      AWSSimpleSystemsManagementClientBuilder.standard().withRegion(Regions.EU_WEST_2).build();
   private HapiSendMDMClient client;
   
   @Autowired
@@ -104,25 +98,27 @@ public class MiddlewareSchedulerTask {
   @Autowired
   private PDFTransformer pdfTransformer;
   
+  @Autowired
+  private SsmUtility ssmUtility;
+  
   public MiddlewareSchedulerTask() throws Exception {
-    iucdsEnvironment = getParameter(IUCDS_ENV);
+    iucdsEnvironment = ssmUtility.getIucdsEnvironment(IUCDS_ENV);
     log.info("IUCDS middleware environment : {} ", iucdsEnvironment);
     ExchangeCredentials credentials =
-        new WebCredentials(getParameter(EMAIL_USERNAME), getParameter(EMAIL_PASSWORD));
+        new WebCredentials(ssmUtility.getParameter(EMAIL_USERNAME), ssmUtility.getParameter(EMAIL_PASSWORD));
     service.setCredentials(credentials);
-    service.autodiscoverUrl(getParameter(EMAIL_USERNAME));
-    client = new HapiSendMDMClient(getParameter(MIRTH_HOST), getParameter(MIRTH_PORT));
+    service.autodiscoverUrl(ssmUtility.getParameter(EMAIL_USERNAME));
+    client = new HapiSendMDMClient(ssmUtility.getParameter(MIRTH_HOST), ssmUtility.getParameter(MIRTH_PORT));
   }
 
-  public MiddlewareSchedulerTask(ExchangeService service, AWSSimpleSystemsManagement ssm,
-      HapiSendMDMClient client, NHS111ReportDataBuilder reportBuilder,
-      HTMLReportTransformer htmlReportTransformer, PDFTransformer pdfTransformer) {
+  public MiddlewareSchedulerTask(ExchangeService service, HapiSendMDMClient client, NHS111ReportDataBuilder reportBuilder,
+      HTMLReportTransformer htmlReportTransformer, PDFTransformer pdfTransformer, SsmUtility ssmUtility) {
     this.service = service;
-    this.ssm = ssm;
     this.client = client;
     this.reportBuilder = reportBuilder;
     this.htmlReportTransformer = htmlReportTransformer;
     this.pdfTransformer = pdfTransformer;
+    this.ssmUtility = ssmUtility;
   }
 
   @Async
@@ -210,9 +206,9 @@ public class MiddlewareSchedulerTask {
   private void createEmailMeassageAndSend(Document doc, byte[] transform) throws Exception {
     // Create an email message and set properties on the message.
     EmailMessage message = new EmailMessage(service);
-    message.setSubject(getParameter(EMS_REPORT_SUBJECT));
-    message.setBody(new MessageBody(getParameter(EMS_REPORT_BODY)));
-    String recipientsString = getParameter(EMS_REPORT_RECIPIENT);
+    message.setSubject(ssmUtility.getParameter(EMS_REPORT_SUBJECT));
+    message.setBody(new MessageBody(ssmUtility.getParameter(EMS_REPORT_BODY)));
+    String recipientsString = ssmUtility.getParameter(EMS_REPORT_RECIPIENT);
     String[] recipients = recipientsString.split(",");
     for (String recipient : recipients) {
       message.getToRecipients().add(recipient); 
@@ -231,24 +227,13 @@ public class MiddlewareSchedulerTask {
   }
 
   private FindItemsResults<Item> getFindItemsResults() throws Exception {
-    ItemView view = new ItemView(Integer.parseInt(getParameter(EMAIL_ITEM_VIEW)));
+    ItemView view = new ItemView(Integer.parseInt(ssmUtility.getParameter(EMAIL_ITEM_VIEW)));
     SearchFilterCollection searchFilterCollection =
         new SearchFilter.SearchFilterCollection(LogicalOperator.And);
     searchFilterCollection.add(
-        new SearchFilter.IsEqualTo(EmailMessageSchema.From, getParameter(EMS_REPORT_SENDER)));
+        new SearchFilter.IsEqualTo(EmailMessageSchema.From, ssmUtility.getParameter(EMS_REPORT_SENDER)));
     searchFilterCollection.add(new SearchFilter.IsEqualTo(EmailMessageSchema.IsRead, false));
     return service.findItems(WellKnownFolderName.Inbox, searchFilterCollection, view);
-  }
-
-  public String getParameter(String parameterName) {
-    GetParameterRequest request = new GetParameterRequest();
-    if (parameterName.equals(IUCDS_ENV)) {
-      request.setName(parameterName);
-    } else {
-      request.setName(IUCDS + "-" + iucdsEnvironment + "-" + parameterName);
-    }
-    request.setWithDecryption(true);
-    return ssm.getParameter(request).getParameter().getValue();
   }
 
   private String createFileName(Document doc) throws ParseException {
