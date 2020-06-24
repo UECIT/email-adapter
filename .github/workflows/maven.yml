@@ -85,7 +85,6 @@ jobs:
 
   invoke-deployment:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     needs: [publish-app]
     steps:
       - name: Invoke deployment hook
