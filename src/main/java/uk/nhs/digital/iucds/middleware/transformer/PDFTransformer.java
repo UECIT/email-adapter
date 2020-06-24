@@ -17,7 +17,7 @@ import lombok.Data;
 @Component
 public class PDFTransformer {
 
-  private static final String FONTS = "src/main/resources/fonts/calibri/";
+  private static final String FONTS = "./src/main/resources/fonts/calibri/";
   
   public byte[] transform(String html) throws IOException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
