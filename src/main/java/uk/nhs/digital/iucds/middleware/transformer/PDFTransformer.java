@@ -1,6 +1,7 @@
 package uk.nhs.digital.iucds.middleware.transformer;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import org.springframework.stereotype.Component;
 import com.amazonaws.util.StringInputStream;
 import com.itextpdf.html2pdf.ConverterProperties;
@@ -24,7 +25,11 @@ public class PDFTransformer {
 
     ConverterProperties properties = new ConverterProperties();
     FontProvider fontProvider = new DefaultFontProvider(false, false, false);
-    fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRI.ttf");
+    String userDirectory = FileSystems.getDefault()
+        .getPath("src/main/resources/fonts/calibri/CALIBRI.ttf")
+        .toAbsolutePath()
+        .toString();
+    fontProvider.addFont(userDirectory);
     /*
      * fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRIB.ttf");
      * fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRII.ttf");
