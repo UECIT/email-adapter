@@ -74,8 +74,10 @@ public class MiddlewareSchedulerTask {
   private static final String EMS_REPORT_SENDER = "ems-email-sender";
   private static final String EMAIL_USERNAME = "ems-email-username";
   private static final String EMAIL_PASSWORD = "ems-email-password";
+  private static final String IUCDS_ENV = "iucds-environment";
   private static final String MIRTH_HOST = "mirth-connect-tcp-host";
   private static final String MIRTH_PORT = "mirth-connect-port-number";
+  private static String iucdsEnvironment;
   
   private static final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
@@ -96,10 +98,13 @@ public class MiddlewareSchedulerTask {
   @Autowired
   private PDFTransformer pdfTransformer;
   
-  @Autowired
   private SsmUtility ssmUtility;
   
+  @Autowired
   public MiddlewareSchedulerTask() throws Exception {
+    this.ssmUtility = new SsmUtility();
+    iucdsEnvironment = ssmUtility.getIucdsEnvironment(IUCDS_ENV);
+    log.info("IUCDS middleware environment : {} ", iucdsEnvironment);
     ExchangeCredentials credentials =
         new WebCredentials(ssmUtility.getParameter(EMAIL_USERNAME), ssmUtility.getParameter(EMAIL_PASSWORD));
     service.setCredentials(credentials);
