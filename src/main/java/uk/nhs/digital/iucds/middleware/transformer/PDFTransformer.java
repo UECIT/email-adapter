@@ -23,7 +23,7 @@ public class PDFTransformer {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
     ConverterProperties properties = new ConverterProperties();
-    FontProvider fontProvider = new DefaultFontProvider(false, false, true);
+    FontProvider fontProvider = new DefaultFontProvider();
     fontProvider.addDirectory(FONTS);
     properties.setFontProvider(fontProvider);
     HtmlConverter.convertToPdf(new StringInputStream(html), outputStream, properties);
