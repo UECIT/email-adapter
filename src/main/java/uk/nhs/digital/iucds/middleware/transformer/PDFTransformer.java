@@ -29,7 +29,7 @@ public class PDFTransformer {
     fontProvider.addDirectory(FONTS);
     properties.setFontProvider(fontProvider);
     log.info("fontProvider {} ", fontProvider.getFontSet().getFonts());
-    HtmlConverter.convertToPdf(new StringInputStream(html), outputStream, properties);
+    HtmlConverter.convertToPdf(new StringInputStream(html), outputStream);
 
     return outputStream.toByteArray();
   }
