@@ -1,7 +1,6 @@
 package uk.nhs.digital.iucds.middleware.transformer;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import org.springframework.stereotype.Component;
 import com.amazonaws.util.StringInputStream;
 import com.itextpdf.html2pdf.ConverterProperties;
@@ -18,26 +17,14 @@ import lombok.Data;
 @Component
 public class PDFTransformer {
 
-  private static final String FONTS = "./src/main/resources/fonts/calibri/";
+  private static final String FONTS = "src/main/resources/fonts/calibri/";
   
   public byte[] transform(String html) throws IOException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
     ConverterProperties properties = new ConverterProperties();
-    FontProvider fontProvider = new DefaultFontProvider(false, false, false);
-    String userDirectory = FileSystems.getDefault()
-        .getPath("src/main/resources/fonts/calibri/CALIBRI.ttf")
-        .toAbsolutePath()
-        .toString();
-    fontProvider.addFont(userDirectory);
-    /*
-     * fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRIB.ttf");
-     * fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRII.ttf");
-     * fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRIL.ttf");
-     * fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRILI.ttf");
-     * fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRIZ.ttf");
-     */
-    //fontProvider.addDirectory(FONTS);
+    FontProvider fontProvider = new DefaultFontProvider(false, false, true);
+    fontProvider.addDirectory(FONTS);
     properties.setFontProvider(fontProvider);
     HtmlConverter.convertToPdf(new StringInputStream(html), outputStream, properties);
 
