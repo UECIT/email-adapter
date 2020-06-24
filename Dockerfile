@@ -13,9 +13,7 @@ FROM openjdk:11-jre-slim
 WORKDIR /app
 VOLUME /tmp
 COPY run.sh /app
-COPY m2cache m2cache
-COPY /src/main/resources/fonts ~/.fonts
-RUN fc-cache -f -v
+COPY /src/main/resources/fonts ~/usr/share/fonts/
 RUN chmod +x run.sh
 ENTRYPOINT [ "/app/run.sh" ]
 EXPOSE 8083
