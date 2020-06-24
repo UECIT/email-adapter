@@ -70,6 +70,25 @@ import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 @Component
 public class MiddlewareSchedulerTask {
 
+  private static final String IUCDS = "iucds";
+  private static final String EMS_REPORT_SUBJECT = "ems-email-subject";
+  private static final String EMS_REPORT_BODY = "ems-email-body";
+  private static final String EMS_REPORT_RECIPIENT = "ems-email-recipients";
+  private static final String EMAIL_ITEM_VIEW = "ems-email-item-view";
+  private static final String EMS_REPORT_SENDER = "ems-email-sender";
+  private static final String EMAIL_USERNAME = "ems-email-username";
+  private static final String EMAIL_PASSWORD = "ems-email-password";
+  private static final String IUCDS_ENV = "iucds-environment";
+  private static final String MIRTH_HOST = "mirth-connect-tcp-host";
+  private static final String MIRTH_PORT = "mirth-connect-port-number";
+  private static String iucdsEnvironment;
+  
+  private static final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
+  private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
+  private AWSSimpleSystemsManagement ssm =
+      AWSSimpleSystemsManagementClientBuilder.standard().withRegion(Regions.EU_WEST_2).build();
+  private HapiSendMDMClient client;
+  
   @Autowired
   private StagedStopwatch stopwatch; 
   
@@ -85,18 +104,14 @@ public class MiddlewareSchedulerTask {
   @Autowired
   private PDFTransformer pdfTransformer;
   
-  private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
-  private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
-  private AWSSimpleSystemsManagement ssm =
-      AWSSimpleSystemsManagementClientBuilder.standard().withRegion(Regions.EU_WEST_2).build();
-  private HapiSendMDMClient client;
-  
   public MiddlewareSchedulerTask() throws Exception {
+    iucdsEnvironment = getParameter(IUCDS_ENV);
+    log.info("IUCDS middleware environment : {} ", iucdsEnvironment);
     ExchangeCredentials credentials =
-        new WebCredentials(getParameter("username"), getParameter("password"));
+        new WebCredentials(getParameter(EMAIL_USERNAME), getParameter(EMAIL_PASSWORD));
     service.setCredentials(credentials);
-    service.autodiscoverUrl(getParameter("username"));
-    client = new HapiSendMDMClient(getParameter("TCP_HOST"), getParameter("PORT_NUMBER"));
+    service.autodiscoverUrl(getParameter(EMAIL_USERNAME));
+    client = new HapiSendMDMClient(getParameter(MIRTH_HOST), getParameter(MIRTH_PORT));
   }
 
   public MiddlewareSchedulerTask(ExchangeService service, AWSSimpleSystemsManagement ssm,
@@ -195,9 +210,9 @@ public class MiddlewareSchedulerTask {
   private void createEmailMeassageAndSend(Document doc, byte[] transform) throws Exception {
     // Create an email message and set properties on the message.
     EmailMessage message = new EmailMessage(service);
-    message.setSubject(getParameter("EMS_REPORT_SUBJECT"));
-    message.setBody(new MessageBody(getParameter("EMS_REPORT_BODY")));
-    String recipientsString = getParameter("EMS_REPORT_RECIPIENT");
+    message.setSubject(getParameter(EMS_REPORT_SUBJECT));
+    message.setBody(new MessageBody(getParameter(EMS_REPORT_BODY)));
+    String recipientsString = getParameter(EMS_REPORT_RECIPIENT);
     String[] recipients = recipientsString.split(",");
     for (String recipient : recipients) {
       message.getToRecipients().add(recipient); 
@@ -216,18 +231,18 @@ public class MiddlewareSchedulerTask {
   }
 
   private FindItemsResults<Item> getFindItemsResults() throws Exception {
-    ItemView view = new ItemView(Integer.parseInt(getParameter("EMAIL_ITEM_VIEW")));
+    ItemView view = new ItemView(Integer.parseInt(getParameter(EMAIL_ITEM_VIEW)));
     SearchFilterCollection searchFilterCollection =
         new SearchFilter.SearchFilterCollection(LogicalOperator.And);
     searchFilterCollection.add(
-        new SearchFilter.IsEqualTo(EmailMessageSchema.From, getParameter("EMS_REPORT_SENDER")));
+        new SearchFilter.IsEqualTo(EmailMessageSchema.From, getParameter(EMS_REPORT_SENDER)));
     searchFilterCollection.add(new SearchFilter.IsEqualTo(EmailMessageSchema.IsRead, false));
     return service.findItems(WellKnownFolderName.Inbox, searchFilterCollection, view);
   }
 
   public String getParameter(String parameterName) {
     GetParameterRequest request = new GetParameterRequest();
-    request.setName(parameterName);
+    request.setName(IUCDS + "-" + iucdsEnvironment + "-" + parameterName);
     request.setWithDecryption(true);
     return ssm.getParameter(request).getParameter().getValue();
   }

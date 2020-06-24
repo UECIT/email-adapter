@@ -49,6 +49,14 @@ import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 @Component
 public class MiddlewareDeleteTask {
 
+  private static final String IUCDS = "iucds";
+  private static final String EMAIL_ITEM_VIEW = "ems-email-item-view";
+  private static final String EMS_REPORT_SENDER = "ems-email-sender";
+  private static final String EMAIL_USERNAME = "ems-email-username";
+  private static final String EMAIL_PASSWORD = "ems-email-password";
+  private static final String IUCDS_ENV = "iucds-environment";
+  private static String iucdsEnvironment;
+  
   @Autowired
   private StagedStopwatch stopwatch;
 
@@ -61,10 +69,12 @@ public class MiddlewareDeleteTask {
       AWSSimpleSystemsManagementClientBuilder.standard().withRegion(Regions.EU_WEST_2).build();
 
   public MiddlewareDeleteTask() throws Exception {
+    iucdsEnvironment = getParameter(IUCDS_ENV);
+    log.info("IUCDS middleware environment : {} ", iucdsEnvironment);
     ExchangeCredentials credentials =
-        new WebCredentials(getParameter("username"), getParameter("password"));
+        new WebCredentials(getParameter(EMAIL_USERNAME), getParameter(EMAIL_PASSWORD));
     service.setCredentials(credentials);
-    service.autodiscoverUrl(getParameter("username"));
+    service.autodiscoverUrl(getParameter(EMAIL_USERNAME));
   }
 
   public MiddlewareDeleteTask(ExchangeService service, AWSSimpleSystemsManagement ssm) {
@@ -103,18 +113,18 @@ public class MiddlewareDeleteTask {
   }
 
   private FindItemsResults<Item> getFindItemsResults() throws Exception {
-    ItemView view = new ItemView(Integer.parseInt(getParameter("EMAIL_ITEM_VIEW")));
+    ItemView view = new ItemView(Integer.parseInt(getParameter(EMAIL_ITEM_VIEW)));
     SearchFilterCollection searchFilterCollection =
         new SearchFilter.SearchFilterCollection(LogicalOperator.And);
     searchFilterCollection.add(
-        new SearchFilter.IsNotEqualTo(EmailMessageSchema.From, getParameter("EMS_REPORT_SENDER")));
+        new SearchFilter.IsNotEqualTo(EmailMessageSchema.From, getParameter(EMS_REPORT_SENDER)));
     searchFilterCollection.add(new SearchFilter.IsEqualTo(EmailMessageSchema.IsRead, false));
     return service.findItems(WellKnownFolderName.Inbox, searchFilterCollection, view);
   }
 
   public String getParameter(String parameterName) {
     GetParameterRequest request = new GetParameterRequest();
-    request.setName(parameterName);
+    request.setName(IUCDS + "-" + iucdsEnvironment + "-" + parameterName);
     request.setWithDecryption(true);
     return ssm.getParameter(request).getParameter().getValue();
   }
