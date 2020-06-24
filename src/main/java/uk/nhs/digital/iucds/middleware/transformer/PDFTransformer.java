@@ -25,11 +25,13 @@ public class PDFTransformer {
     ConverterProperties properties = new ConverterProperties();
     FontProvider fontProvider = new DefaultFontProvider(false, false, false);
     fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRI.ttf");
-    fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRIB.ttf");
-    fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRII.ttf");
-    fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRIL.ttf");
-    fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRILI.ttf");
-    fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRIZ.ttf");
+    /*
+     * fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRIB.ttf");
+     * fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRII.ttf");
+     * fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRIL.ttf");
+     * fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRILI.ttf");
+     * fontProvider.addFont("./src/main/resources/fonts/calibri/CALIBRIZ.ttf");
+     */
     //fontProvider.addDirectory(FONTS);
     properties.setFontProvider(fontProvider);
     HtmlConverter.convertToPdf(new StringInputStream(html), outputStream, properties);
