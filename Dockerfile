@@ -7,14 +7,14 @@ ENV GITHUB_USER=$GITHUB_USER GITHUB_TOKEN=$GITHUB_TOKEN
 COPY pom.xml settings.xml /app/
 COPY m2cache m2cache
 COPY src src
-COPY /src/main/resources/fonts ~/usr/share/fonts/
-RUN fc-cache -f -v
 RUN mvn -B package -DskipTests -Dmaven.repo.local=m2cache --settings settings.xml
 
 FROM openjdk:11-jre-slim
 WORKDIR /app
 VOLUME /tmp
 COPY run.sh /app
+COPY /src/main/resources/fonts ~/usr/share/fonts/
+RUN fc-cache -f -v
 RUN chmod +x run.sh
 ENTRYPOINT [ "/app/run.sh" ]
 EXPOSE 8083
