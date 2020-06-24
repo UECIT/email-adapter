@@ -11,12 +11,13 @@ import lombok.Data;
 @Component
 public class SsmUtility {
 
+  private static final String IUCDS_ENV = "iucds-environment";
   private static String iucdsEnvironment;
   private static final String IUCDS = "iucds";
   private AWSSimpleSystemsManagement ssm =
       AWSSimpleSystemsManagementClientBuilder.standard().withRegion(Regions.EU_WEST_2).build();
   
-  public String getIucdsEnvironment(String parameterName) {
+  private String getIucdsEnvironment(String parameterName) {
     GetParameterRequest request = new GetParameterRequest();
     request.setName(parameterName);
     request.setWithDecryption(true);
@@ -25,6 +26,7 @@ public class SsmUtility {
   }
   
   public String getParameter(String parameterName) {
+    getIucdsEnvironment(IUCDS_ENV);
     GetParameterRequest request = new GetParameterRequest();
     request.setName(IUCDS + "-" + iucdsEnvironment + "-" + parameterName);
     request.setWithDecryption(true);

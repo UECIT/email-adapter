@@ -103,7 +103,6 @@ public class MiddlewareApplicationTest {
   public void contextLoads() throws Exception {
     items.getItems().add(message);
     item.add(message);
-    Mockito.when(ssmUtility.getIucdsEnvironment(Mockito.anyString())).thenReturn("dev");
     Mockito.when(ssmUtility.getParameter(Mockito.anyString())).thenReturn("100");
     Mockito
         .when(service.findItems(Mockito.any(WellKnownFolderName.class),

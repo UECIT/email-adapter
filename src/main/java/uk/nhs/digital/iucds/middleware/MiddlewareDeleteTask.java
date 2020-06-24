@@ -50,8 +50,6 @@ public class MiddlewareDeleteTask {
   private static final String EMS_REPORT_SENDER = "ems-email-sender";
   private static final String EMAIL_USERNAME = "ems-email-username";
   private static final String EMAIL_PASSWORD = "ems-email-password";
-  private static final String IUCDS_ENV = "iucds-environment";
-  private static String iucdsEnvironment;
   
   @Autowired
   private StagedStopwatch stopwatch;
@@ -66,14 +64,13 @@ public class MiddlewareDeleteTask {
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
 
   public MiddlewareDeleteTask() throws Exception {
-    iucdsEnvironment = ssmUtility.getIucdsEnvironment(IUCDS_ENV);
-    log.info("IUCDS middleware environment : {} ", iucdsEnvironment);
+    
     ExchangeCredentials credentials =
         new WebCredentials(ssmUtility.getParameter(EMAIL_USERNAME), ssmUtility.getParameter(EMAIL_PASSWORD));
     service.setCredentials(credentials);
     service.autodiscoverUrl(ssmUtility.getParameter(EMAIL_USERNAME));
   }
-
+  
   public MiddlewareDeleteTask(ExchangeService service, SsmUtility ssmUtility) {
     this.service = service;
     this.ssmUtility = ssmUtility;
