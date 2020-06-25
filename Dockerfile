@@ -13,6 +13,7 @@ FROM openjdk:11-jre-slim
 WORKDIR /app
 VOLUME /tmp
 COPY run.sh /app
+RUN apt install fontconfig
 COPY /src/main/resources/fonts /usr/share/fonts/
 RUN fc-cache -f -v
 RUN chmod +x run.sh
