@@ -46,7 +46,7 @@ import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 @Component
 public class MiddlewareDeleteTask {
 
-  private static final String EMAIL_ITEM_VIEW_PAGE_SIZE = "item-view-page-size";
+  private static final String EMAIL_ITEM_VIEW_PAGE_SIZE = "ems-email-item-view-page-size";
   private static final String EMS_REPORT_FROM = "ems-email-from";
   private static final String EMAIL_USERNAME = "ems-email-username";
   private static final String EMAIL_PASSWORD = "ems-email-password";

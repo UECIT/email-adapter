@@ -70,7 +70,7 @@ public class MiddlewareSchedulerTask {
   private static final String EMS_REPORT_SUBJECT = "ems-email-subject";
   private static final String EMS_REPORT_BODY = "ems-email-body";
   private static final String EMS_REPORT_RECIPIENT = "ems-email-recipients";
-  private static final String EMAIL_ITEM_VIEW_PAGE_SIZE = "item-view-page-size";
+  private static final String EMAIL_ITEM_VIEW_PAGE_SIZE = "ems-email-item-view-page-size";
   private static final String EMS_REPORT_FROM = "ems-email-from";
   private static final String EMAIL_USERNAME = "ems-email-username";
   private static final String EMAIL_PASSWORD = "ems-email-password";
