@@ -46,8 +46,8 @@ import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
 @Component
 public class MiddlewareDeleteTask {
 
-  private static final String EMAIL_ITEM_VIEW = "ems-email-item-view";
-  private static final String EMS_REPORT_SENDER = "ems-email-sender";
+  private static final String EMAIL_ITEM_VIEW_PAGE_SIZE = "item-view-page-size";
+  private static final String EMS_REPORT_FROM = "ems-email-from";
   private static final String EMAIL_USERNAME = "ems-email-username";
   private static final String EMAIL_PASSWORD = "ems-email-password";
   private static final String IUCDS_ENV = "iucds-environment";
@@ -110,11 +110,11 @@ public class MiddlewareDeleteTask {
   }
 
   private FindItemsResults<Item> getFindItemsResults() throws Exception {
-    ItemView view = new ItemView(Integer.parseInt(ssmUtility.getParameter(EMAIL_ITEM_VIEW)));
+    ItemView view = new ItemView(Integer.parseInt(ssmUtility.getParameter(EMAIL_ITEM_VIEW_PAGE_SIZE)));
     SearchFilterCollection searchFilterCollection =
         new SearchFilter.SearchFilterCollection(LogicalOperator.And);
     searchFilterCollection.add(
-        new SearchFilter.IsNotEqualTo(EmailMessageSchema.From, ssmUtility.getParameter(EMS_REPORT_SENDER)));
+        new SearchFilter.IsNotEqualTo(EmailMessageSchema.From, ssmUtility.getParameter(EMS_REPORT_FROM)));
     searchFilterCollection.add(new SearchFilter.IsEqualTo(EmailMessageSchema.IsRead, false));
     return service.findItems(WellKnownFolderName.Inbox, searchFilterCollection, view);
   }
