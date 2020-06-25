@@ -13,9 +13,7 @@ FROM openjdk:11-jre-slim
 WORKDIR /app
 VOLUME /tmp
 COPY run.sh /app
-RUN apt install fontconfig
-COPY /src/main/resources/fonts /usr/share/fonts/
-RUN fc-cache -f -v
+COPY /src/main/resources/templates/fonts /app/fonts
 RUN chmod +x run.sh
 ENTRYPOINT [ "/app/run.sh" ]
 EXPOSE 8083
