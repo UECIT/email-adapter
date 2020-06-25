@@ -25,7 +25,7 @@ public class PDFTransformer {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
     ConverterProperties properties = new ConverterProperties();
-    FontProvider fontProvider = new DefaultFontProvider(false, true, false);
+    FontProvider fontProvider = new DefaultFontProvider(false, false, true);
     fontProvider.addDirectory(FONTS);
     properties.setFontProvider(fontProvider);
     log.info("fontProvider {} ", fontProvider.getFontSet().getFonts());
