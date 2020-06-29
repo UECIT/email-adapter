@@ -240,7 +240,7 @@ public class MiddlewareSchedulerTask {
   private String createFileName(Document doc) throws ParseException {
     Element patientBanner = doc.getElementById("patientBanner");
     Elements table = patientBanner.select("table").first().select("td");
-    String name = table.get(0).text().split(" ")[1];
+    String name = table.get(0).text().split(", ")[0];
     String dobString = table.get(1).text().split(" ")[1];
     SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy");
     Date date = format.parse(dobString);
