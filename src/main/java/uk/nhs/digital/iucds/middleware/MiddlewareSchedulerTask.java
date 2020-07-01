@@ -57,6 +57,7 @@ import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
 import uk.nhs.digital.iucds.middleware.service.NHS111ReportDataBuilder;
 import uk.nhs.digital.iucds.middleware.transformer.HTMLReportTransformer;
 import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
+import uk.nhs.digital.iucds.middleware.transformer.XMLTransformer;
 import uk.nhs.digital.iucds.middleware.utility.DeleteUtility;
 import uk.nhs.digital.iucds.middleware.utility.SsmUtility;
 import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
@@ -97,6 +98,9 @@ public class MiddlewareSchedulerTask {
   
   @Autowired
   private PDFTransformer pdfTransformer;
+  
+  @Autowired
+  private XMLTransformer xmlTransformer;
   
   private SsmUtility ssmUtility;
   
@@ -188,12 +192,15 @@ public class MiddlewareSchedulerTask {
         byte[] transform = pdfTransformer.transform(Jsoup.parse(nhs111ReportString).html());
         stopwatch.finishStage("pdf transformation");
 
-        sendMDMMessage(transform);
-
         createEmailMeassageAndSend(doc, transform);
-
       }
 
+      if (fileAttachment.getContentType().equalsIgnoreCase(MimeTypeUtils.TEXT_XML_VALUE)) {
+        byte[] transform = xmlTransformer.transform(fileAttachment.getContent());
+        
+        sendMDMMessage(transform);
+      }
+      
     } else if (attachment instanceof ItemAttachment) {
       ItemAttachment itemAttachment = (ItemAttachment) attachment;
 
