@@ -14,7 +14,7 @@ WORKDIR /app
 VOLUME /tmp
 COPY run.sh /app
 COPY fonts /app/fonts
-COPY cda.xsl /app/src/main/resources/cda.xsl
+COPY /src/main/resources/cda.xsl /app/src/main/resources/cda.xsl
 RUN chmod +x run.sh
 ENTRYPOINT [ "/app/run.sh" ]
 EXPOSE 8083
