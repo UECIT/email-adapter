@@ -17,7 +17,7 @@ import lombok.Data;
 @Component
 public class XMLTransformer {
 
-  private static final String XSL_FILE = "src/main/resources/templates/cda.xsl";
+  private static final String XSL_FILE = "src/main/resources/cda.xsl";
 
   public byte[] transform(byte[] bs) throws IOException, TransformerException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
