@@ -36,6 +36,7 @@ import microsoft.exchange.webservices.data.search.FindItemsResults;
 import microsoft.exchange.webservices.data.search.ItemView;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter.SearchFilterCollection;
+import uk.nhs.digital.iucds.middleware.service.EmailService;
 import uk.nhs.digital.iucds.middleware.utility.DeleteUtility;
 import uk.nhs.digital.iucds.middleware.utility.SsmUtility;
 import uk.nhs.digital.iucds.middleware.utility.StagedStopwatch;
@@ -52,17 +53,18 @@ public class MiddlewareDeleteTask {
   private static final String EMAIL_PASSWORD = "ems-email-password";
   private static final String IUCDS_ENV = "iucds-environment";
   private static String iucdsEnvironment;
-  
-  @Autowired
-  private StagedStopwatch stopwatch;
 
   @Autowired
   private DeleteUtility deleteUtility;
 
+  @Autowired
+  private EmailService emailService;
+  
   private SsmUtility ssmUtility;
   private final DateTimeFormatter FOMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss");
   private ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
-
+  private StagedStopwatch stopwatch;
+  
   @Autowired
   public MiddlewareDeleteTask() throws Exception {
     this.ssmUtility = new SsmUtility();
@@ -92,9 +94,10 @@ public class MiddlewareDeleteTask {
       while (findResults.getTotalCount() > 0) {
         for (Object item : findResults.getItems()) {
           try {
+            stopwatch = StagedStopwatch.start();
             EmailMessage emailMessage = (EmailMessage) item;
 
-            deleteUtility.setMailsIsReadAndDelete(emailMessage);
+            deleteUtility.setMailsIsReadAndDelete(emailMessage, stopwatch);
 
           } catch (Exception e) {
             log.error("Exception", e);
