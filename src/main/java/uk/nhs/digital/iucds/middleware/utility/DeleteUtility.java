@@ -11,13 +11,11 @@ import microsoft.exchange.webservices.data.core.service.item.EmailMessage;
 @Component
 public class DeleteUtility {
 
-  private StagedStopwatch stopwatch = StagedStopwatch.start();
-
-  public void setMailsIsReadAndDelete(EmailMessage emailMessage)
+  public void setMailsIsReadAndDelete(EmailMessage emailMessage, StagedStopwatch stopwatch)
       throws ServiceResponseException, Exception {
     emailMessage.setIsRead(true);
     emailMessage.update(ConflictResolutionMode.AlwaysOverwrite);
-    emailMessage.delete(DeleteMode.SoftDelete);
+    emailMessage.delete(DeleteMode.HardDelete);
     stopwatch.finishStage("Making email unread after reading email");
   }
 }

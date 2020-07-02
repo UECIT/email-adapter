@@ -39,9 +39,11 @@ import microsoft.exchange.webservices.data.search.FindItemsResults;
 import microsoft.exchange.webservices.data.search.ItemView;
 import microsoft.exchange.webservices.data.search.filter.SearchFilter.SearchFilterCollection;
 import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
+import uk.nhs.digital.iucds.middleware.service.EmailService;
 import uk.nhs.digital.iucds.middleware.service.NHS111ReportDataBuilder;
 import uk.nhs.digital.iucds.middleware.transformer.HTMLReportTransformer;
 import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
+import uk.nhs.digital.iucds.middleware.utility.DeleteUtility;
 import uk.nhs.digital.iucds.middleware.utility.SsmUtility;
 
 @SpringBootTest
@@ -55,8 +57,14 @@ public class MiddlewareApplicationTest {
   @MockBean
   private MiddlewareDeleteTask deleteTask;
   
+  @MockBean
+  private EmailService emailService;
+  
   @Mock
   private SsmUtility ssmUtility;
+  
+  @Mock
+  private DeleteUtility deleteUtility;
   
   @Mock
   private ExchangeService service;
@@ -95,8 +103,7 @@ public class MiddlewareApplicationTest {
   private PDFTransformer pdfTransformer;
 
   private MiddlewareSchedulerTask getSut() throws Exception {
-    return new MiddlewareSchedulerTask(service, client, reportBuilder, htmlReportTransformer,
-        pdfTransformer, ssmUtility);
+    return new MiddlewareSchedulerTask(service, client, ssmUtility, emailService, deleteUtility);
   }
 
   @Test
@@ -104,6 +111,7 @@ public class MiddlewareApplicationTest {
     items.getItems().add(message);
     item.add(message);
     Mockito.when(ssmUtility.getParameter(Mockito.anyString())).thenReturn("100");
+    Mockito.when(emailService.fetchEmailsFromInbox(service, ssmUtility)).thenReturn(items);
     Mockito
         .when(service.findItems(Mockito.any(WellKnownFolderName.class),
             Mockito.any(SearchFilterCollection.class), Mockito.any(ItemView.class)))
@@ -121,11 +129,10 @@ public class MiddlewareApplicationTest {
     Mockito.when(service.getRequestedServerVersion()).thenReturn(ExchangeVersion.Exchange2010_SP2);
     Mockito.doNothing().when(client).sendMDM(Mockito.any());
 
-    getSut().sendMails();
+    getSut().startEmailProcessing();
 
     // Basic integration test that shows the context starts up properly
     assertThat(schedulerTask).isNotNull();
-    Mockito.verify(service, Mockito.times(2)).findItems(Mockito.any(WellKnownFolderName.class),
-        Mockito.any(SearchFilterCollection.class), Mockito.any(ItemView.class));
+    Mockito.verify(emailService, Mockito.times(2)).fetchEmailsFromInbox(service, ssmUtility);
   }
 }
