@@ -11,6 +11,7 @@ import microsoft.exchange.webservices.data.core.PropertySet;
 import microsoft.exchange.webservices.data.core.enumeration.property.BasePropertySet;
 import microsoft.exchange.webservices.data.core.enumeration.property.WellKnownFolderName;
 import microsoft.exchange.webservices.data.core.enumeration.search.LogicalOperator;
+import microsoft.exchange.webservices.data.core.enumeration.search.SortDirection;
 import microsoft.exchange.webservices.data.core.service.item.EmailMessage;
 import microsoft.exchange.webservices.data.core.service.item.Item;
 import microsoft.exchange.webservices.data.core.service.schema.EmailMessageSchema;
@@ -129,6 +130,7 @@ public class EmailService {
     searchFilterCollection.add(
         new SearchFilter.IsEqualTo(EmailMessageSchema.From, ssmUtility.getParameter(EMS_REPORT_FROM)));
     searchFilterCollection.add(new SearchFilter.IsEqualTo(EmailMessageSchema.IsRead, false));
+    view.getOrderBy().add(ItemSchema.DateTimeReceived, SortDirection.Descending); 
     return service.findItems(WellKnownFolderName.Inbox, searchFilterCollection, view);
   }
 }
