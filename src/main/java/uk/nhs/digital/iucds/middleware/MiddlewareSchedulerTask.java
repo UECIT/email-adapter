@@ -129,7 +129,7 @@ public class MiddlewareSchedulerTask {
                 emailService.createEmailMeassageAndSend(service, ssmUtility, fileUtility.createFileName(doc));
               
               } else if (fileAttachment.getContentType().equalsIgnoreCase(MimeTypeUtils.TEXT_XML_VALUE)) {
-                sendMDMMessage(client, fileAttachment.getContent(), stopwatch);
+                sendMDMMessage(fileAttachment.getContent(), stopwatch);
               }
             }
             deleteUtility.setMailsIsReadAndDelete(emailMessage, stopwatch);
@@ -147,9 +147,8 @@ public class MiddlewareSchedulerTask {
     log.info("Invocation completed: {}", timeStamp);
   }
   
-  private void sendMDMMessage(HapiSendMDMClient client, byte[] pemXml, StagedStopwatch stopwatch) throws IOException, TransformerException {
-    byte[] xml2html = xmlTransformer.transform(pemXml);
-    client.sendMDM(xml2html);
+  private void sendMDMMessage(byte[] pemXml, StagedStopwatch stopwatch) throws IOException, TransformerException {
+    client.sendMDM(xmlTransformer.transform(pemXml));
     stopwatch.finishStage("Sending MDM message to HIE API");
   }
 }
