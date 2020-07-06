@@ -40,9 +40,6 @@ import microsoft.exchange.webservices.data.property.complex.FileAttachment;
 import microsoft.exchange.webservices.data.search.FindItemsResults;
 import uk.nhs.digital.iucds.middleware.client.HapiSendMDMClient;
 import uk.nhs.digital.iucds.middleware.service.EmailService;
-import uk.nhs.digital.iucds.middleware.service.NHS111ReportDataBuilder;
-import uk.nhs.digital.iucds.middleware.transformer.HTMLReportTransformer;
-import uk.nhs.digital.iucds.middleware.transformer.PDFTransformer;
 import uk.nhs.digital.iucds.middleware.transformer.XMLTransformer;
 import uk.nhs.digital.iucds.middleware.utility.DeleteUtility;
 import uk.nhs.digital.iucds.middleware.utility.FileUtility;
@@ -80,15 +77,6 @@ public class MiddlewareSchedulerTask {
   
   @Autowired
   private FileUtility fileUtility;
-  
-  @Autowired
-  private NHS111ReportDataBuilder reportBuilder;
-  
-  @Autowired
-  private HTMLReportTransformer htmlReportTransformer;
-  
-  @Autowired
-  private PDFTransformer pdfTransformer;
   
   @Autowired
   public MiddlewareSchedulerTask() throws Exception {
@@ -160,11 +148,7 @@ public class MiddlewareSchedulerTask {
   }
   
   private void sendMDMMessage(byte[] bs, StagedStopwatch stopwatch) throws IOException, TransformerException {
-    byte[] transform = xmlTransformer.transform(bs);
-    NHS111ReportData nhs111Report = reportBuilder.buildNhs111Report(Jsoup.parse(new String(transform, StandardCharsets.UTF_8)));
-    String nhs111ReportString = htmlReportTransformer.transform(nhs111Report);
-    byte[] transformedPdf = pdfTransformer.transform(Jsoup.parse(nhs111ReportString).html());
-    client.sendMDM(transformedPdf);
+    client.sendMDM(xmlTransformer.transform(bs));
     stopwatch.finishStage("Sending MDM message to HIE API");
   }
 }
