@@ -27,7 +27,8 @@ public class NHS111ReportDataBuilder {
   private static final String PATIENT_BANNER = "patientBanner";
   private static final String BORN = "Born";
   private static final String GENDER = "Gender";
-  private static final String NHS_NUMBER = "Unverified NHS No.";
+  private static final String NHS_NUMBER = "NHS No.";
+  private static final String UNVERIFIED_NHS_NUMBER = "Unverified NHS No.";
   private static final String LOCAL_PATIENT_ID = "Local Patient ID";
   private static final String HOME_ADDR = "Home Address";
   private static final String HOME_PHONE = "Home Phone";
@@ -178,9 +179,16 @@ public class NHS111ReportDataBuilder {
     String dob =
         patientBanner.substring(patientBanner.lastIndexOf(BORN), patientBanner.indexOf(GENDER));
     log.info(dob);
-    String gender = patientBanner.substring(patientBanner.lastIndexOf(GENDER),
-        patientBanner.indexOf(NHS_NUMBER));
-    log.info(gender);
+    String gender = "Not Known";
+    if (patientBanner.contains(NHS_NUMBER)) {
+      gender = patientBanner.substring(patientBanner.lastIndexOf(GENDER),
+          patientBanner.indexOf(NHS_NUMBER));
+      log.info(gender);
+    } else {
+      gender = patientBanner.substring(patientBanner.lastIndexOf(GENDER),
+          patientBanner.indexOf(UNVERIFIED_NHS_NUMBER));
+      log.info(gender);
+    }
     String nhsNo = patientBanner.substring(patientBanner.lastIndexOf(NHS_NUMBER),
         patientBanner.indexOf(LOCAL_PATIENT_ID));
     log.info(nhsNo);
