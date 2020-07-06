@@ -179,39 +179,59 @@ public class NHS111ReportDataBuilder {
     String dob =
         patientBanner.substring(patientBanner.lastIndexOf(BORN), patientBanner.indexOf(GENDER));
     log.info(dob);
+    report.setDob(dob.split(SPACE)[1]);
     String gender;
     String nhsNo;
     if (patientBanner.contains(UNVERIFIED_NHS_NUMBER)) {
       gender = patientBanner.substring(patientBanner.lastIndexOf(GENDER),
           patientBanner.indexOf(UNVERIFIED_NHS_NUMBER));
       log.info(gender);
+      report.setGender(gender.split(SPACE)[1]);
       nhsNo = patientBanner.substring(patientBanner.lastIndexOf(UNVERIFIED_NHS_NUMBER),
           patientBanner.indexOf(LOCAL_PATIENT_ID));
       log.info(nhsNo);
+      report.setNhsNo(nhsNo.split(SPACE)[3] + nhsNo.split(SPACE)[4] + nhsNo.split(SPACE)[5]);
     } else {
       gender = patientBanner.substring(patientBanner.lastIndexOf(GENDER),
           patientBanner.indexOf(NHS_NUMBER));
       log.info(gender);
+      report.setGender(gender.split(SPACE)[1]);
       nhsNo = patientBanner.substring(patientBanner.lastIndexOf(NHS_NUMBER),
           patientBanner.indexOf(LOCAL_PATIENT_ID));
       log.info(nhsNo);
+      report.setNhsNo(nhsNo.split(SPACE)[3] + nhsNo.split(SPACE)[4] + nhsNo.split(SPACE)[5]);
     }
-    String localPatientId = patientBanner.substring(patientBanner.lastIndexOf(LOCAL_PATIENT_ID),
-        patientBanner.indexOf(HOME_ADDR));
-    log.info(localPatientId);
-    log.info(patientBanner.substring(patientBanner.lastIndexOf(HOME_ADDR),
-        patientBanner.indexOf(HOME_PHONE)));
-    String homePhone = patientBanner.substring(patientBanner.lastIndexOf(HOME_PHONE),
-        patientBanner.indexOf(MOBILE_PHONE));
-    log.info(homePhone.split(SPACE)[2]);
-    String mobilePhone = patientBanner.substring(patientBanner.lastIndexOf(MOBILE_PHONE),
-        patientBanner.indexOf(EMERGENCY_PHONE));
-    log.info(mobilePhone.split(SPACE)[2]);
-    String emergencyPhone = patientBanner.substring(patientBanner.lastIndexOf(EMERGENCY_PHONE),
-        patientBanner.indexOf(GP_PRACTICE));
-    log.info(emergencyPhone.split(SPACE)[2]);
-    log.info(
-        patientBanner.substring(patientBanner.lastIndexOf(GP_PRACTICE), patientBanner.length()));
+    if (patientBanner.contains(LOCAL_PATIENT_ID) && patientBanner.contains(HOME_ADDR)) {
+      String localPatientId = patientBanner.substring(patientBanner.lastIndexOf(LOCAL_PATIENT_ID),
+          patientBanner.indexOf(HOME_ADDR));
+      log.info(localPatientId);
+      report.setLocalPatientId(localPatientId.split(SPACE)[3]);
+    }
+    String homePhone = null;
+    if (patientBanner.contains(HOME_ADDR) && patientBanner.contains(HOME_PHONE) && patientBanner.contains(MOBILE_PHONE)) {
+      log.info(patientBanner.substring(patientBanner.lastIndexOf(HOME_ADDR),
+          patientBanner.indexOf(HOME_PHONE)));
+      homePhone = patientBanner.substring(patientBanner.lastIndexOf(HOME_PHONE),
+          patientBanner.indexOf(MOBILE_PHONE));
+      log.info(homePhone.split(SPACE)[2]);
+      report.setHomePhone(homePhone.split(SPACE)[2]);
+    }
+    String mobilePhone = null;
+    if (patientBanner.contains(MOBILE_PHONE) && patientBanner.contains(EMERGENCY_PHONE)) {
+      mobilePhone = patientBanner.substring(patientBanner.lastIndexOf(MOBILE_PHONE),
+          patientBanner.indexOf(EMERGENCY_PHONE));
+      log.info(mobilePhone.split(SPACE)[2]);
+      report.setMobilePhone(mobilePhone.split(SPACE)[2]);
+    }
+    String emergencyPhone = null;
+    if (patientBanner.contains(EMERGENCY_PHONE) && patientBanner.contains(GP_PRACTICE)) {
+      emergencyPhone = patientBanner.substring(patientBanner.lastIndexOf(EMERGENCY_PHONE),
+          patientBanner.indexOf(GP_PRACTICE));
+      log.info(emergencyPhone.split(SPACE)[2]);
+      report.setEmergencyPhone(emergencyPhone.split(SPACE)[2]);
+      log.info(patientBanner.substring(patientBanner.lastIndexOf(GP_PRACTICE),
+          patientBanner.length()));
+    }
     Element table = doc.getElementById(PATIENT_BANNER).select(TABLE_STR).get(1);
     Elements rows = table.select("tr");
     Element row = rows.get(0);
@@ -222,13 +242,5 @@ public class NHS111ReportDataBuilder {
     String gpPractice = cols.get(2).select("p").html();
     log.info(gpPractice);
     report.setGpAddress(gpPractice.replaceAll(GP_PRACTICE + "\n", EMPTY_STR));
-
-    report.setDob(dob.split(SPACE)[1]);
-    report.setGender(gender.split(SPACE)[1]);
-    report.setNhsNo(nhsNo.split(SPACE)[3] + nhsNo.split(SPACE)[4] + nhsNo.split(SPACE)[5]);
-    report.setLocalPatientId(localPatientId.split(SPACE)[3]);
-    report.setHomePhone(homePhone.split(SPACE)[2]);
-    report.setMobilePhone(mobilePhone.split(SPACE)[2]);
-    report.setEmergencyPhone(emergencyPhone.split(SPACE)[2]);
   }
 }
