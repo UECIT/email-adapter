@@ -179,19 +179,23 @@ public class NHS111ReportDataBuilder {
     String dob =
         patientBanner.substring(patientBanner.lastIndexOf(BORN), patientBanner.indexOf(GENDER));
     log.info(dob);
-    String gender = "Not Known";
-    if (patientBanner.contains(NHS_NUMBER)) {
-      gender = patientBanner.substring(patientBanner.lastIndexOf(GENDER),
-          patientBanner.indexOf(NHS_NUMBER));
-      log.info(gender);
-    } else {
+    String gender;
+    String nhsNo;
+    if (patientBanner.contains(UNVERIFIED_NHS_NUMBER)) {
       gender = patientBanner.substring(patientBanner.lastIndexOf(GENDER),
           patientBanner.indexOf(UNVERIFIED_NHS_NUMBER));
       log.info(gender);
+      nhsNo = patientBanner.substring(patientBanner.lastIndexOf(UNVERIFIED_NHS_NUMBER),
+          patientBanner.indexOf(LOCAL_PATIENT_ID));
+      log.info(nhsNo);
+    } else {
+      gender = patientBanner.substring(patientBanner.lastIndexOf(GENDER),
+          patientBanner.indexOf(NHS_NUMBER));
+      log.info(gender);
+      nhsNo = patientBanner.substring(patientBanner.lastIndexOf(NHS_NUMBER),
+          patientBanner.indexOf(LOCAL_PATIENT_ID));
+      log.info(nhsNo);
     }
-    String nhsNo = patientBanner.substring(patientBanner.lastIndexOf(NHS_NUMBER),
-        patientBanner.indexOf(LOCAL_PATIENT_ID));
-    log.info(nhsNo);
     String localPatientId = patientBanner.substring(patientBanner.lastIndexOf(LOCAL_PATIENT_ID),
         patientBanner.indexOf(HOME_ADDR));
     log.info(localPatientId);
