@@ -199,7 +199,7 @@ public class NHS111ReportDataBuilder {
       nhsNo = patientBanner.substring(patientBanner.lastIndexOf(NHS_NUMBER),
           patientBanner.indexOf(LOCAL_PATIENT_ID));
       log.info(nhsNo);
-      report.setNhsNo(nhsNo.split(SPACE)[3] + nhsNo.split(SPACE)[4] + nhsNo.split(SPACE)[5]);
+      report.setNhsNo(nhsNo.split(SPACE)[2] + nhsNo.split(SPACE)[3] + nhsNo.split(SPACE)[4]);
     }
     if (patientBanner.contains(LOCAL_PATIENT_ID) && patientBanner.contains(HOME_ADDR)) {
       String localPatientId = patientBanner.substring(patientBanner.lastIndexOf(LOCAL_PATIENT_ID),
