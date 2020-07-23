@@ -10,18 +10,25 @@ By using the EWS Java API, you can access almost all the information stored in a
 iucds-environment -> dev
 
 #ems
+
 iucds-{env}-ems-email-username -> email username
+
 iucds-{env}-ems-email-password -> email password
 
 iucds-{env}-ems-email-subject ->	IUCDS Pilot
+
 iucds-{env}-ems-email-body ->	Please find attached
+
 iucds-{env}-ems-email-recipients ->  destination email recipients
 
 iucds-{env}-ems-email-item-view-page-size -> 100
+
 iucds-{env}-ems-email-from -> email address of sender
 
 #mirth-connect
+
 iucds-{env}-mirth-connect-tcp-host
+
 iucds-{env}-mirth-connect-port-number
 
 ## Source Code Location
