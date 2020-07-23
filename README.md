@@ -6,6 +6,24 @@ Also send the an email with pdf attachment to destination.
 It uses The Exchange Web Services (EWS) Java API.
 By using the EWS Java API, you can access almost all the information stored in an Office 365, Exchange Online, or Exchange Server mailbox.
 
+## Configuration values stored in AWS parameter store with default vaules
+iucds-environment -> dev
+
+#ems
+iucds-{env}-ems-email-username -> email username
+iucds-{env}-ems-email-password -> email password
+
+iucds-{env}-ems-email-subject ->	IUCDS Pilot
+iucds-{env}-ems-email-body ->	Please find attached
+iucds-{env}-ems-email-recipients ->  destination email recipients
+
+iucds-{env}-ems-email-item-view-page-size -> 100
+iucds-{env}-ems-email-from -> email address of sender
+
+#mirth-connect
+iucds-{env}-mirth-connect-tcp-host
+iucds-{env}-mirth-connect-port-number
+
 ## Source Code Location
 The repository for this project is located in a public GitHub space here: https://github.com/UECIT/email-adapter
 
